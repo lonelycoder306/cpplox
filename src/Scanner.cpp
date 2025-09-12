@@ -1,0 +1,219 @@
+#include "../include/Lox.h"
+#include "../include/Object.h"
+#include "../include/Scanner.h"
+#include "../include/TokenType.h"
+#include <cctype>
+#include <string>
+
+Scanner::Scanner(std::string& source)
+{
+	this->source = source;
+	keywords["and"] = AND;
+	keywords["class"] = CLASS;
+	keywords["else"] = ELSE;
+	keywords["false"] = FALSE;
+	keywords["for"] = FOR;
+	keywords["fun"] = FUN;
+	keywords["if"] = IF;
+	keywords["nil"] = NIL;
+	keywords["or"] = OR;
+	keywords["print"] = PRINT;
+	keywords["return"] = RETURN;
+	keywords["super"] = SUPER;
+	keywords["this"] = THIS;
+	keywords["true"] = TRUE;
+	keywords["var"] = VAR;
+	keywords["while"] = WHILE;
+	keywords["break"] = BREAK;
+	keywords["continue"] = CONTINUE;
+}
+
+std::vector<Token> Scanner::scanTokens()
+{
+	while (!isAtEnd())
+	{
+		start = current;
+		scanToken();
+	}
+
+	tokens.push_back(Token(eof, "", Object(NULL), line));
+	return tokens;
+}
+
+bool Scanner::match(char expected)
+{
+	if (isAtEnd()) return false;
+	if (source[current] != expected) return false;
+	current++;
+	return true;
+}
+
+char Scanner::peek()
+{
+	if (isAtEnd()) return '\0';
+	return source[current];
+}
+
+char Scanner::peekNext()
+{
+	if ((current + 1) >= source.length()) return '\0';
+	return source[current + 1];
+}
+
+bool Scanner::isAtEnd()
+{
+	return (current >= source.length());
+}
+
+char Scanner::advance()
+{
+	current++;
+	return source[current - 1];
+}
+
+void Scanner::addToken(TokenType type)
+{
+	addToken(type, Object(NULL));
+}
+
+void Scanner::addToken(TokenType type, Object literal)
+{
+	std::string text = source.substr(start, current - start);
+	tokens.push_back(Token(type, text, literal, line));
+}
+
+void Scanner::scanToken()
+{
+	char c = advance();
+	switch (c)
+	{
+		case '(': addToken(LEFT_PAREN); break;
+		case ')': addToken(RIGHT_PAREN); break;
+		case '{': addToken(LEFT_BRACE); break;
+		case '}': addToken(RIGHT_BRACE); break;
+		case ',': addToken(COMMA); break;
+		case '.': addToken(DOT); break;
+		case '-': addToken(MINUS); break;
+		case '+': addToken(PLUS); break;
+		case ';': addToken(SEMICOLON); break;
+		case '*': addToken(STAR); break;
+		case '?': addToken(Q_MARK); break;
+		case ':': addToken(COLON); break;
+
+		case '!':
+			addToken(match('=') ? BANG_EQUAL : BANG);
+			break;
+		case '=':
+			addToken(match('=') ? EQUAL_EQUAL : EQUAL);
+			break;
+		case '<':
+			addToken(match('=') ? LESS_EQUAL : LESS);
+			break;
+		case '>':
+			addToken(match('=') ? GREATER_EQUAL : GREATER);
+			break;
+
+		case '/':
+			if (match('/'))
+			{
+				// A comment goes until the end of the line.
+				while ((peek() != '\n') && !isAtEnd()) advance();
+			}
+
+			else if (match('*'))
+			{
+				int count = 1;
+				while ((count != 0) && !isAtEnd())
+				{
+					// Newlines: increment line and skip a character.
+					if (peek() == '\n') line++;
+					else if ((peek() == '/') && (peekNext() == '*'))
+					{
+						count++;
+						// Skip two characters (combined with advance outside if-else-if block).
+						advance();
+					}
+					else if ((peek() == '*') && (peekNext() == '/'))
+					{
+						count--;
+						advance();
+					}
+					advance(); // Avoids adding an extra advance() in each block.
+				}
+
+				if (count != 0)
+				{
+					Lox::error(line, "Unterminated comment block.");
+				}
+			}
+
+			else
+				addToken(SLASH);
+			break;
+
+		case ' ':
+		case '\r':
+		case '\t':
+			// Ignore whitespace.
+			break;
+
+		case '\n':
+			line++;
+			break;
+
+		case '"': string(); break;
+
+		default:
+			if (isdigit(c)) number();
+			else if (isalpha(c) || c == '_') identifier();
+			else
+				Lox::error(line, "Unexpected character.");
+			break;
+	}
+}
+
+void Scanner::identifier()
+{
+	while (isalnum(peek()) || (peek() == '_')) advance();
+
+	std::string text = source.substr(start, current - start);
+	TokenType type = IDENTIFIER;
+	if (keywords.find(text) != keywords.end())
+		type = keywords[text];
+	addToken(type);
+}
+
+void Scanner::number()
+{
+	while (isdigit(peek())) advance();
+
+	// Look for a fractional part.
+	if ((peek() == '.') && isdigit(peekNext()))
+	{
+		// Consume the "."
+		advance();
+		while (isdigit(peek())) advance();
+	}
+	Object num(std::stod(source.substr(start, current - start + 1)));
+	addToken(NUMBER, num);
+}
+
+void Scanner::string()
+{
+	while ((peek() != '"') && !isAtEnd())
+	{
+		if (peek() == '\n') line++;
+		advance();
+	}
+	if (isAtEnd())
+	{
+		Lox::error(line, "Unterminated string.");
+		return;
+	}
+	// The closing ".
+	advance();
+
+	// Trim the surrounding quotes.
+	std::string value = source.substr(start + 1, (current - 1) - (start + 1));
+	addToken(STRING, Object(value));
+}
