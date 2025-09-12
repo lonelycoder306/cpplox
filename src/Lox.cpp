@@ -1,5 +1,6 @@
 #include "../include/Error.h"
 #include "../include/Lox.h"
+#include "../include/Parser.h"
 #include "../include/Scanner.h"
 #include "../include/Token.h"
 #include <iostream>
@@ -47,8 +48,11 @@ void Lox::run(std::string& source)
 	Scanner scanner(source);
 	std::vector<Token> tokens = scanner.scanTokens();
 
-	for (Token token : tokens)
-		std::cout << token.toString() << '\n';
+    Parser parser(tokens);
+    parser.parse();
+
+	// for (Token token : tokens)
+	// 	std::cout << token.toString() << '\n';
 }
 
 void Lox::error(int line, std::string message)
@@ -58,7 +62,7 @@ void Lox::error(int line, std::string message)
 
 void Lox::error(Token token, std::string message)
 {
-	if (token.type = eof)
+	if (token.type == eof)
 		report(token.line, " at end", message);
 	else
 		report(token.line, "at '" + token.lexeme + "'", message);

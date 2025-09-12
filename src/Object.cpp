@@ -17,4 +17,6 @@ std::string Object::printVal()
 	}
 	if (this->value.type() == typeid(std::string))
 		return any_cast<std::string>(this->value);
+    
+    return "NULL";
 }
