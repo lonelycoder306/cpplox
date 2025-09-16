@@ -20,3 +20,17 @@ std::string Object::printVal()
     
     return "NULL";
 }
+
+std::string Object::printType()
+{
+    if (this->value.type() == typeid(int))
+		return "number";
+	if (this->value.type() == typeid(double))
+		return "number";
+	if (this->value.type() == typeid(bool))
+        return "boolean";
+	if (this->value.type() == typeid(std::string))
+		return "string";
+    
+    return "unknown";
+}

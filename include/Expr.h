@@ -2,6 +2,7 @@
 #include "Nodes.h"
 #include "Object.h"
 #include "Token.h"
+#include "Visitor.h"
 #include <vector>
 
 class Expr
@@ -9,6 +10,8 @@ class Expr
     public:
         Expr();
         virtual ~Expr();
+        virtual Object accept(Visitor& visitor) = 0;
+        virtual bool operator==(Expr& other) = 0;
 };
 
 class Assign : public Expr
@@ -18,6 +21,8 @@ class Assign : public Expr
         Expr* value;
 
         Assign(Token name, Expr* value);
+        Object accept(Visitor& visitor) override;
+        bool operator==(Expr& other) override;
 };
 
 class Binary : public Expr
@@ -28,6 +33,8 @@ class Binary : public Expr
         Expr* right;
 
         Binary(Expr* left, Token bOperator, Expr* right);
+        Object accept(Visitor& visitor) override;
+        bool operator==(Expr& other) override;
 };
 
 class Call : public Expr
@@ -38,6 +45,8 @@ class Call : public Expr
         vpE arguments;
 
         Call(Expr* callee, Token paren, vpE arguments);
+        Object accept(Visitor& visitor) override;
+        bool operator==(Expr& other) override;
 };
 
 class Comma : public Expr
@@ -46,8 +55,11 @@ class Comma : public Expr
         vpE expressions;
 
         Comma(vpE expressions);
+        Object accept(Visitor& visitor) override;
+        bool operator==(Expr& other) override;
 };
 
+/*
 class Get : public Expr
 {
     public:
@@ -55,7 +67,10 @@ class Get : public Expr
         Token name;
 
         Get(Expr* object, Token name);
+        Object accept(Visitor& visitor) override;
+        bool operator==(Expr& other) override;
 };
+*/
 
 class Grouping : public Expr
 {
@@ -63,6 +78,8 @@ class Grouping : public Expr
         Expr* expression;
 
         Grouping(Expr* expression);
+        Object accept(Visitor& visitor) override;
+        bool operator==(Expr& other) override;
 };
 
 class Lambda : public Expr
@@ -72,6 +89,8 @@ class Lambda : public Expr
         vpS body;
 
         Lambda(vT params, vpS body);
+        Object accept(Visitor& visitor) override;
+        bool operator==(Expr& other) override;
 };
 
 class Literal : public Expr
@@ -80,6 +99,8 @@ class Literal : public Expr
         Object value;
 
         Literal(Object value);
+        Object accept(Visitor& visitor) override;
+        bool operator==(Expr& other) override;
 };
 
 class Logical : public Expr
@@ -90,8 +111,11 @@ class Logical : public Expr
         Expr* right;
 
         Logical(Expr* left, Token lOperator, Expr* right);
+        Object accept(Visitor& visitor) override;
+        bool operator==(Expr& other) override;
 };
 
+/*
 class Set : public Expr
 {
     public:
@@ -100,6 +124,8 @@ class Set : public Expr
         Expr* value;
 
         Set(Expr* object, Token name, Expr* value);
+        Object accept(Visitor& visitor) override;
+        bool operator==(Expr& other) override;
 };
 
 class Super : public Expr
@@ -109,7 +135,10 @@ class Super : public Expr
         Token method;
 
         Super(Token keyword, Token method);
+        Object accept(Visitor& visitor) override;
+        bool operator==(Expr& other) override;
 };
+*/
 
 class Ternary : public Expr
 {
@@ -119,15 +148,21 @@ class Ternary : public Expr
         Expr* falseBranch;
 
         Ternary(Expr* condition, Expr* trueBranch, Expr* falseBranch);
+        Object accept(Visitor& visitor) override;
+        bool operator==(Expr& other) override;
 };
 
+/*
 class This : public Expr
 {
     public:
         Token keyword;
 
         This(Token keyword);
+        Object accept(Visitor& visitor) override;
+        bool operator==(Expr& other) override;
 };
+*/
 
 class Unary : public Expr
 {
@@ -136,6 +171,8 @@ class Unary : public Expr
         Expr* right;
 
         Unary(Token uOperator, Expr* right);
+        Object accept(Visitor& visitor) override;
+        bool operator==(Expr& other) override;
 };
 
 class Variable : public Expr
@@ -144,4 +181,6 @@ class Variable : public Expr
         Token name;
 
         Variable(Token name);
+        Object accept(Visitor& visitor) override;
+        bool operator==(Expr& other) override;
 };

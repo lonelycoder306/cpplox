@@ -1,21 +1,28 @@
 #pragma once
 #include "Nodes.h"
 #include "Token.h"
+#include "Visitor.h"
+#include <string>
 #include <vector>
 
 class Stmt
 {
     public:
         Stmt();
-        virtual ~Stmt();
+        virtual ~Stmt() = 0;
+        virtual void accept(Visitor& visitor) = 0;
+        virtual bool operator==(Stmt& other) = 0;
 };
 
 class Break : public Stmt
 {
     public:
         Token breakCMD;
+        std::string loopType;
 
-        Break(Token breakCMD);
+        Break(Token breakCMD, std::string loopType);
+        void accept(Visitor& visitor) override;
+        bool operator==(Stmt& other) override;
 };
 
 class Block : public Stmt
@@ -24,8 +31,11 @@ class Block : public Stmt
         vpS statements;
 
         Block(vpS statements);
+        void accept(Visitor& visitor) override;
+        bool operator==(Stmt& other) override;
 };
 
+/*
 class Class : public Stmt
 {
     public:
@@ -35,24 +45,32 @@ class Class : public Stmt
         vpS classMethods;
 
         Class(Token name, Expr* superclass, vpS methods, vpS classMethods);
+        void accept(Visitor& visitor) override;
+        bool operator==(Stmt& other) override;
 };
+*/
 
 class Continue : public Stmt
 {
     public:
         Token continueCMD;
+        std::string loopType;
 
-        Continue(Token continueCMD);
+        Continue(Token continueCMD, std::string loopType);
+        void accept(Visitor& visitor) override;
+        bool operator==(Stmt& other) override;
 };
 
 class Function : public Stmt
 {
     public:
         Token name;
-        vT params;
+        vT* params;
         vpS body;
 
-        Function(Token name, vT params, vpS body);
+        Function(Token name, vT* params, vpS body);
+        void accept(Visitor& visitor) override;
+        bool operator==(Stmt& other) override;
 };
 
 class If : public Stmt
@@ -63,6 +81,8 @@ class If : public Stmt
         Stmt* elseBranch;
 
         If(Expr* condition, Stmt* thenBranch, Stmt* elseBranch);
+        void accept(Visitor& visitor) override;
+        bool operator==(Stmt& other) override;
 };
 
 class Expression : public Stmt
@@ -71,6 +91,8 @@ class Expression : public Stmt
         Expr* expression;
 
         Expression(Expr* expression);
+        void accept(Visitor& visitor) override;
+        bool operator==(Stmt& other) override;
 };
 
 class Print : public Stmt
@@ -79,6 +101,8 @@ class Print : public Stmt
         Expr* expression;
 
         Print(Expr* expression);
+        void accept(Visitor& visitor) override;
+        bool operator==(Stmt& other) override;
 };
 
 class Return : public Stmt
@@ -88,6 +112,8 @@ class Return : public Stmt
         Expr* value;
 
         Return(Token keyword, Expr* value);
+        void accept(Visitor& visitor) override;
+        bool operator==(Stmt& other) override;
 };
 
 class Var : public Stmt
@@ -97,6 +123,8 @@ class Var : public Stmt
         Expr* initializer;
 
         Var(Token name, Expr* initializer);
+        void accept(Visitor& visitor) override;
+        bool operator==(Stmt& other) override;
 };
 
 class While : public Stmt
@@ -106,4 +134,6 @@ class While : public Stmt
         Stmt* body;
 
         While(Expr* condition, Stmt* body);
+        void accept(Visitor& visitor) override;
+        bool operator==(Stmt& other) override;
 };

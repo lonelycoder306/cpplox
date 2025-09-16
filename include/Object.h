@@ -9,4 +9,5 @@ struct Object
 	Object() {}
 	Object(std::any v) : value(v) {}
 	std::string printVal();
+    std::string printType();
 };

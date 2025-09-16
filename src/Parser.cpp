@@ -7,6 +7,7 @@
 #include "../include/Token.h"
 #include "../include/TokenType.h"
 #include <iostream>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -32,7 +33,7 @@ Stmt* Parser::declaration()
 {
     try
     {
-        if (match(CLASS)) return classDeclaration();
+        // if (match(CLASS)) return classDeclaration();
         if (match(FUN))
         {
                 if (check(IDENTIFIER)) return function("function");
@@ -72,9 +73,10 @@ Stmt* Parser::breakStatement()
 {
     Token breakToken = previous();
     consume(SEMICOLON, "Expect ';' after 'break'.");
-    return new Break(breakToken);
+    return new Break(breakToken, loopType);
 }
 
+/*
 Stmt* Parser::classDeclaration()
 {
     Token name = consume(IDENTIFIER, "Expect class name.");
@@ -97,12 +99,13 @@ Stmt* Parser::classDeclaration()
 
     return new Class(name, superclass, methods, classMethods);
 }
+*/
 
 Stmt* Parser::continueStatement()
 {
     Token continueToken = previous();
     consume(SEMICOLON, "Expect ';' after 'continue'.");
-    return new Continue(continueToken);
+    return new Continue(continueToken, loopType);
 }
 
 Stmt* Parser::forStatement()
@@ -219,20 +222,21 @@ Stmt* Parser::function(std::string kind)
     if (kind != "")
         name = consume(IDENTIFIER, "Expect " + kind + " name.");
 
-    vT parameters; // Add std::optional to make null list for getter methods.
+    vT* parameters = nullptr; // Add std::optional to make null list for getter methods.
 
     // Allow omitting the parameter list entirely in method getters.
     if (!(kind == "method") || check(LEFT_PAREN))
     {
         consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
+        parameters = new vT;
         if (!check(RIGHT_PAREN))
         {
             do
             {
-                if (parameters.size() >= 255)
+                if (parameters->size() >= 255)
                     Lox::error(peek(), "Can't have more than 255 parameters.");
 
-                parameters.push_back(consume(IDENTIFIER, "Expect parameter name."));
+                parameters->push_back(consume(IDENTIFIER, "Expect parameter name."));
             } while (match(COMMA));
         }
 
@@ -323,11 +327,13 @@ Expr* Parser::assignment()
             return new Assign(name, value);
         }
 
+        /*
         else if (dynamic_cast<Get*>(expr))
         {
             Get* get = (Get*) expr;
             return new Set(get->object, get->name, value);
         }
+        */
 
         throw ParseError(equals, "Invalid assignment target.");
     }
@@ -474,11 +480,13 @@ Expr* Parser::call()
     {
         if (match(LEFT_PAREN))
             expr = finishCall(expr);
+        /*
         else if (match(DOT))
         {
             Token name = consume(IDENTIFIER, "Expect property name after '.'.");
             expr = new Get(expr, name);
         }
+        */
         else
             break;
     }
@@ -495,6 +503,7 @@ Expr* Parser::primary()
     if(match(NUMBER, STRING))
         return new Literal(previous().literal);
 
+    /*
     if (match(SUPER))
     {
         Token keyword = previous();
@@ -504,6 +513,7 @@ Expr* Parser::primary()
     }
 
     if (match(THIS)) return new This(previous());
+    */
 
     if(match(IDENTIFIER))
         return new Variable(previous());

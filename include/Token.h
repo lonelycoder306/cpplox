@@ -13,5 +13,6 @@ class Token
 
 		Token() : line(0) {};
 		Token(TokenType type, std::string lexeme, Object literal, int line);
+        bool operator==(Token& other);
 		std::string toString();
 };

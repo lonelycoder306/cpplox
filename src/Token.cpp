@@ -11,6 +11,12 @@ Token::Token(TokenType type, std::string lexeme, Object literal, int line)
 	this->line = line;
 }
 
+bool Token::operator==(Token& other)
+{
+    return ((this->type == other.type) &&
+            (this->lexeme == other.lexeme));
+}
+
 std::string Token::toString()
 {
 	if (type != eof)

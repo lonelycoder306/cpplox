@@ -1,5 +1,6 @@
 #include "../include/Error.h"
 #include "../include/Lox.h"
+#include "../include/Nodes.h"
 #include "../include/Parser.h"
 #include "../include/Scanner.h"
 #include "../include/Token.h"
@@ -34,8 +35,18 @@ void Lox::runPrompt()
 	{
 		std::cout << ">>> ";
 		std::string line;
-		getline(std::cin, line);
+        std::string tempString;
 
+        do
+        {
+            if (line.size() != 0)
+                std::cout << "... ";
+            getline(std::cin, tempString);
+            if ((tempString.size() != 0) && (tempString[tempString.size() - 1] == '\\'))
+                line += tempString.substr(0, tempString.size() - 1);
+            else
+                line += tempString;
+        } while (tempString[tempString.size() - 1] == '\\');
 		if (line == "") break;
 
 		run(line);
@@ -49,10 +60,10 @@ void Lox::run(std::string& source)
 	std::vector<Token> tokens = scanner.scanTokens();
 
     Parser parser(tokens);
-    parser.parse();
+    vpS statements = parser.parse();
 
 	// for (Token token : tokens)
-	// 	std::cout << token.toString() << '\n';
+	// std::cout << token.toString() << '\n';
 }
 
 void Lox::error(int line, std::string message)

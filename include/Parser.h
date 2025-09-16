@@ -14,6 +14,7 @@ class Parser
     private:
         vT tokens;
         int current = 0;
+        std::string loopType;
 
         // Statement methods.
 
