@@ -1,7 +1,9 @@
-#include "../include/Error.h"
 #include "../include/Lox.h"
+#include "../include/Error.h"
+#include "../include/Interpreter.h"
 #include "../include/Nodes.h"
 #include "../include/Parser.h"
+#include "../include/Resolver.h"
 #include "../include/Scanner.h"
 #include "../include/Token.h"
 #include <iostream>
@@ -11,6 +13,7 @@
 
 bool Lox::hadError = false;
 bool Lox::hadRuntimeError = false;
+Interpreter Lox::interpreter = Interpreter();
 
 void Lox::runFile(char* path)
 {
@@ -46,7 +49,7 @@ void Lox::runPrompt()
                 line += tempString.substr(0, tempString.size() - 1);
             else
                 line += tempString;
-        } while (tempString[tempString.size() - 1] == '\\');
+        } while ((tempString.size() != 0) && (tempString[tempString.size() - 1] == '\\'));
 		if (line == "") break;
 
 		run(line);
@@ -61,6 +64,15 @@ void Lox::run(std::string& source)
 
     Parser parser(tokens);
     vpS statements = parser.parse();
+
+	if (hadError) return;
+
+    Resolver resolver(interpreter);
+    resolver.resolve(statements);
+
+    if (hadError) return;
+
+    interpreter.interpret(statements);
 
 	// for (Token token : tokens)
 	// std::cout << token.toString() << '\n';

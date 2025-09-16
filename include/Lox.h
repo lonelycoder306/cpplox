@@ -1,5 +1,6 @@
 #pragma once
 #include "Error.h"
+#include "Interpreter.h"
 #include "Token.h"
 #include <string>
 
@@ -17,5 +18,6 @@ class Lox
 	private:
 		static bool hadError;
 		static bool hadRuntimeError;
+        static Interpreter interpreter;
 		static void report(int line, std::string where, std::string message);
 };

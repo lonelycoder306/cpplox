@@ -1,51 +1,39 @@
 #pragma once
-#include "Environment.h"
 #include "Expr.h"
-#include "Object.h"
-#include "Overloads.h"
+#include "Interpreter.h"
+#include "Nodes.h"
 #include "Stmt.h"
 #include "Token.h"
 #include "Visitor.h"
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
-/*
-// Custom struct type to avoid using map or unordered_map.
-// The form requires a < operator, while the latter requires
-// a hash function and an == operator.
-struct distArray
+class Resolver : public Visitor
 {
-    std::vector<Expr> keys;
-    std::vector<int> distances;
-
-    bool contains(const Expr& key)
-    {
-        auto it = std::find(keys.begin(), keys.end(), key);
-        if (it == keys.end()) return false;
-        return true;
-    }
+    private:
+        Interpreter interpreter;
+        std::vector<std::map<std::string, bool>> scopes;
+        enum FunctionType { NONE, FUNCTION, LAMBDA, INITIALIZER, METHOD };
+        // enum ClassType {};
+        FunctionType currentFunction = NONE;
+        // ClassType currentClass;
     
-    int operator[](Expr& key)
-    {
-        auto it = std::find(keys.begin(), keys.end(), key);
-        int index = std::distance(keys.begin(), it);
-        return distances[index];
-    }
-};
-*/
-
-class Interpreter : public Visitor
-{
     public:
-        Environment globals;
+        Resolver(Interpreter interpreter);
 
-        Interpreter() = default;
-        void interpret(vpS);
-        void execute(Stmt*);
-        Object evaluate(Expr* expr);
-        void executeBlock(vpS statements, Environment environment);
-        void resolve(Expr* expr, int depth);
+        // General methods.
+
+        void beginScope();
+        void endScope();
+        void declare(Token name);
+        void define(Token name);
+        void resolve(vpS statements);
+        void resolve(Stmt* stmt);
+        void resolve(Expr* expr);
+        void resolveLocal(Expr* expr, Token name);
+        void resolveFunction(Function* function, FunctionType type);
+        void resolveLambda(Lambda* lambda, FunctionType type);
 
         // Statement methods.
 
@@ -62,6 +50,8 @@ class Interpreter : public Visitor
         void visitWhileStmt(While* stmt) override;
 
         // Expression methods.
+        // Return value can be Object(nullptr).
+        // Will be discarded anyway.
 
         Object visitAssignExpr(Assign* expr) override;
         Object visitBinaryExpr(Binary* expr) override;
@@ -78,17 +68,4 @@ class Interpreter : public Visitor
         // Object visitThisExpr(This* expr) override;
         Object visitUnaryExpr(Unary* expr) override;
         Object visitVariableExpr(Variable* expr) override;
-
-    private:
-        Environment environment = globals;
-        std::map<Expr*, int> locals;
-        int loopLevel = 0;
-
-        // Helper methods.
-        Object lookUpVariable(Token name, Expr *expr);
-        void checkNumberOperand(Token bOperator, Object operand);
-        void checkNumberOperands(Token bOperator, Object left, Object right);
-        bool isTruthy(Object object);
-        bool isEqual(Object a, Object b);
-        std::string stringify(Object object);
 };

@@ -5,8 +5,6 @@
 class Visitor
 {
     public:
-        Visitor();
-
         virtual void visitBreakStmt(Break* stmt) = 0;
         virtual void visitBlockStmt(Block* stmt) = 0;
         // virtual void visitClassStmt(Class* stmt) = 0;

@@ -54,6 +54,11 @@ void Interpreter::executeBlock(vpS statements, Environment environment)
     this->environment = previous;
 }
 
+void Interpreter::resolve(Expr* expr, int depth)
+{
+    locals[expr] = depth;
+}
+
 // Statement methods.
 
 void Interpreter::visitBreakStmt(Break* stmt)
@@ -123,7 +128,7 @@ void Interpreter::visitIfStmt(If* stmt)
 void Interpreter::visitPrintStmt(Print* stmt)
 {
     Object value = evaluate(stmt->expression);
-    std::cout << stringify(value);
+    std::cout << stringify(value) << '\n';
 }
 
 void Interpreter::visitReturnStmt(Return* stmt)
@@ -209,12 +214,12 @@ Object Interpreter::visitBinaryExpr(Binary* expr)
             return Object(double(left.value) - double(right.value));
         case PLUS:
             checkNumberOperands(expr->bOperator, left, right);
-            return Object(double(left.value) - double(right.value));
+            return Object(double(left.value) + double(right.value));
         case SLASH:
             checkNumberOperands(expr->bOperator, left, right);
-            if (double(right) == 0)
+            if (double(right.value) == 0)
                 throw RuntimeError(expr->bOperator, "Division by zero not allowed.");
-            return Object(double(left) / double(right));
+            return Object(double(left.value) / double(right.value));
         case STAR:
             checkNumberOperands(expr->bOperator, left, right);
             return Object(double(left.value) * double(right.value));
@@ -390,15 +395,15 @@ Object Interpreter::lookUpVariable(Token name, Expr *expr)
 
 void Interpreter::checkNumberOperand(Token bOperator, Object operand)
 {
-    if (typeid(operand) == typeid(double)) return;
+    if (operand.value.type() == typeid(double)) return;
 
     throw RuntimeError(bOperator, "Operand must be a number.");
 }
 
 void Interpreter::checkNumberOperands(Token bOperator, Object left, Object right)
 {
-    if ((typeid(left) == typeid(double)) 
-        && (typeid(right) == typeid(double))) 
+    if ((left.value.type() == typeid(double)) 
+        && (right.value.type() == typeid(double))) 
         return;
 
     throw RuntimeError(bOperator, "Operands must be numbers.");
@@ -432,7 +437,14 @@ std::string Interpreter::stringify(Object object)
     #define bool(value) std::any_cast<bool>(value)
     #define string(value) std::any_cast<std::string>(value)
 
-    if (object.value.type() == typeid(double)) return std::to_string(double(object.value));
+    if (object.value.type() == typeid(double))
+    {
+        std::string doubleString = std::to_string(double(object.value));
+        size_t pos = doubleString.find(".0");
+        if (pos != std::string::npos)
+            return doubleString.substr(0, pos);
+        return doubleString;
+    }
     if (object.value.type() == typeid(bool))
     {
         if (bool(object.value)) return "true";

@@ -36,10 +36,10 @@ Stmt* Parser::declaration()
         // if (match(CLASS)) return classDeclaration();
         if (match(FUN))
         {
-                if (check(IDENTIFIER)) return function("function");
-                // Signal that the function is an unassigned lambda (so interpreter does nothing with it).
-                return function("");
-            }
+            if (check(IDENTIFIER)) return function("function");
+            // Signal that the function is an unassigned lambda (so interpreter does nothing with it).
+            return function("");
+        }
         if (match(VAR)) return varDeclaration();
 
         return statement();
