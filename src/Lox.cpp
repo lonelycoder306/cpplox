@@ -95,9 +95,7 @@ void Lox::error(BaseError& exception)
 void Lox::report(BaseError& error, std::string where)
 {
     int line = error.type == SCAN ? error.line : error.token.line;
-    // int column = error.
     std::string message = error.message;
-    // std::string lexerFile = 
 
     std::cerr << error.name + " error"  +  where << " [line " << line << "]: " <<
         message << '\n';
