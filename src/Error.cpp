@@ -17,6 +17,43 @@ BaseError::BaseError(Token token, std::string message)
 	this->message = message;
 }
 
+void BaseError::show()
+{
+    Lox::error(*this);
+}
+
+// ScanError.
+ScanError::ScanError(int line, std::string message) :
+    BaseError(line, message)
+{
+    this->name = "Scan";
+    this->type = SCAN;
+}
+
+// ParseError.
+ParseError::ParseError(Token token, std::string message) :
+    BaseError(token, message)
+{
+    this->name = "Parse";
+    this->type = PARSE;
+}
+
+// StaticError.
+StaticError::StaticError(Token token, std::string message) :
+    BaseError(token, message)
+{
+    this->name = "Static";
+    this->type = STATIC;
+}
+
+// RuntimeError.
+RuntimeError::RuntimeError(Token token, std::string message) :
+    BaseError(token, message)
+{
+    this->name = "Runtime";
+    this->type = RUNTIME;
+}
+
 // Break.
 BreakError::BreakError(Token token, std::string loopType)
 {

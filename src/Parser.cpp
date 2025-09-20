@@ -7,7 +7,6 @@
 #include "../include/Token.h"
 #include "../include/TokenType.h"
 #include <iostream>
-#include <optional>
 #include <string>
 #include <vector>
 
@@ -47,6 +46,7 @@ Stmt* Parser::declaration()
     catch (ParseError& error)
     {
         synchronize();
+        error.show();
         return nullptr;
     }
 }
@@ -128,7 +128,10 @@ Stmt* Parser::forStatement()
     if (!check(RIGHT_PAREN)) increment = expression();
     consume(RIGHT_PAREN, "Expect ')' after for clauses.");
 
+    std::string currentLoop = this->loopType;
+    this->loopType = "forLoop";
     Stmt* body = statement();
+    this->loopType = currentLoop;
 
     if (increment != nullptr)
     {
@@ -180,7 +183,7 @@ Stmt* Parser::returnStatement()
     if (!check(RIGHT_BRACE))
     {
         std::cout << "Warning (line " << peek().line <<
-                "): code found after return statement (will be ignored).";
+                "): code found after return statement (will be ignored).\n";
     }
 
     return new Return(keyword, value);
@@ -203,7 +206,11 @@ Stmt* Parser::whileStatement()
     consume(LEFT_PAREN, "Expect '(' after 'while'.");
     Expr* condition = expression();
     consume(RIGHT_PAREN, "Expect ')' after condition.");
+    
+    std::string currentLoop = this->loopType;
+    this->loopType = "whileLoop";
     Stmt* body = statement();
+    this->loopType = currentLoop;
 
     return new While(condition, body);
 }
@@ -234,7 +241,7 @@ Stmt* Parser::function(std::string kind)
             do
             {
                 if (parameters->size() >= 255)
-                    Lox::error(peek(), "Can't have more than 255 parameters.");
+                    throw ParseError(peek(), "Can't have more than 255 parameters.");
 
                 parameters->push_back(consume(IDENTIFIER, "Expect parameter name."));
             } while (match(COMMA));
@@ -295,7 +302,7 @@ Expr* Parser::lambda()
             do
             {
                 if (parameters.size() >= 255)
-                    Lox::error(peek(), "Can't have more than 255 parameters.");
+                    throw ParseError(peek(), "Can't have more than 255 parameters.");
 
                 parameters.push_back(consume(IDENTIFIER,  "Expect parameter name."));
             } while (match(COMMA));
@@ -460,7 +467,7 @@ Expr* Parser::finishCall(Expr* callee)
         do
         {
             if (arguments.size() > 255)
-                Lox::error(peek(), "Can't have more than 255 arguments.");
+                throw ParseError(peek(), "Can't have more than 255 arguments.");
             // Personal edit/change.
             // lambda() instead of expression() to ignore comma expressions in function arguments.
             arguments.push_back(lambda());

@@ -29,7 +29,7 @@ Object LoxFunction::call(Interpreter interpreter, std::vector<Object> arguments)
     if (declaration.params != nullptr)
     {
         vT params = *declaration.params;
-        for (size_t i = 0; i < declaration.params->size(); i++)
+        for (int i = 0; i < (int) declaration.params->size(); i++)
             environment.define(params[i].lexeme, arguments[i]);
     }
 
@@ -59,7 +59,7 @@ bool LoxFunction::isGetter()
 int LoxFunction::arity()
 {
     if (declaration.params == nullptr) return 0;
-    return declaration.params->size();
+    return (int) declaration.params->size();
 }
 
 std::string LoxFunction::toString()

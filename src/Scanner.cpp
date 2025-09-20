@@ -1,6 +1,7 @@
+#include "../include/Scanner.h"
+#include "../include/Error.h"
 #include "../include/Lox.h"
 #include "../include/Object.h"
-#include "../include/Scanner.h"
 #include "../include/TokenType.h"
 #include <cctype>
 #include <string>
@@ -33,7 +34,14 @@ std::vector<Token> Scanner::scanTokens()
 	while (!isAtEnd())
 	{
 		start = current;
-		scanToken();
+        try
+        {
+            scanToken();
+        }
+        catch(ScanError& error)
+        {
+            error.show();
+        }
 	}
 
 	tokens.push_back(Token(eof, "", Object(NULL), line));
@@ -143,7 +151,7 @@ void Scanner::scanToken()
 
 				if (count != 0)
 				{
-					Lox::error(line, "Unterminated comment block.");
+					throw ScanError(line, "Unterminated comment block.");
 				}
 			}
 
@@ -167,7 +175,7 @@ void Scanner::scanToken()
 			if (isdigit(c)) number();
 			else if (isalpha(c) || c == '_') identifier();
 			else
-				Lox::error(line, "Unexpected character.");
+				throw ScanError(line, "Unexpected character.");
 			break;
 	}
 }
@@ -207,7 +215,7 @@ void Scanner::string()
 	}
 	if (isAtEnd())
 	{
-		Lox::error(line, "Unterminated string.");
+		throw ScanError(line, "Unterminated string.");
 		return;
 	}
 	// The closing ".

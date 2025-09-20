@@ -1,4 +1,5 @@
 #include "../include/Lox.h"
+#include "../include/Cleaner.h"
 #include "../include/Error.h"
 #include "../include/Interpreter.h"
 #include "../include/Nodes.h"
@@ -45,8 +46,14 @@ void Lox::runPrompt()
             if (line.size() != 0)
                 std::cout << "... ";
             getline(std::cin, tempString);
-            if ((tempString.size() != 0) && (tempString[tempString.size() - 1] == '\\'))
-                line += tempString.substr(0, tempString.size() - 1);
+			if ((tempString.size() != 0) && (tempString[tempString.size() - 1] == '\\'))
+			{
+				// Replace the \ with a space.
+				// Not only removing the \ since that will combine separate lines.
+				// This would cause problems if we don't indent (add a \t separator)
+				// between consequent lines.
+				line += tempString.substr(0, tempString.size() - 1) + '\n';
+			}
             else
                 line += tempString;
         } while ((tempString.size() != 0) && (tempString[tempString.size() - 1] == '\\'));
@@ -58,7 +65,7 @@ void Lox::runPrompt()
 }
 
 void Lox::run(std::string& source)
-{
+{	
 	Scanner scanner(source);
 	std::vector<Token> tokens = scanner.scanTokens();
 
@@ -73,34 +80,32 @@ void Lox::run(std::string& source)
     if (hadError) return;
 
     interpreter.interpret(statements);
-
-	// for (Token token : tokens)
-	// std::cout << token.toString() << '\n';
 }
 
-void Lox::error(int line, std::string message)
+void Lox::error(BaseError& exception)
 {
-	report(line, "", message);
+    if (exception.type == SCAN)
+        report(exception, "");
+    else if (exception.token.type == eof)
+        report(exception, " at end");
+    else
+        report(exception, " at '" + exception.token.lexeme + "'");
 }
 
-void Lox::error(Token token, std::string message)
+void Lox::report(BaseError& error, std::string where)
 {
-	if (token.type == eof)
-		report(token.line, " at end", message);
+    int line = error.type == SCAN ? error.line : error.token.line;
+    // int column = error.
+    std::string message = error.message;
+    // std::string lexerFile = 
+
+    std::cerr << error.name + " error"  +  where << " [line " << line << "]: " <<
+        message << '\n';
+
+	if (error.type == RUNTIME)
+		hadRuntimeError = true;
 	else
-		report(token.line, "at '" + token.lexeme + "'", message);
-}
-
-void Lox::runtimeError(RuntimeError& error)
-{
-	std::cerr << error.message << "\n[line " << error.token.line << "]" << '\n';
-	hadRuntimeError = true;
-}
-
-void Lox::report(int line, std::string where, std::string message)
-{
-	std::cerr << "[line " << line << "] Error" << where << ": " << message << '\n';
-	hadError = true;
+		hadError = true;
 }
 
 int main(int argc, char **argv)

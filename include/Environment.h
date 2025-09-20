@@ -14,7 +14,7 @@ class Environment
         Object get(Token name);
         void assign(Token name, Object value);
         void define(std::string name, Object value);
-        Environment ancestor(int distance);
+        Environment* ancestor(int distance);
         Object getAt(int distance, Token name);
         void assignAt(int distance, Token name, Object value);
 

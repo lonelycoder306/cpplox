@@ -4,39 +4,50 @@
 #include <stdexcept>
 #include <string>
 
+enum ErrorType
+{
+	SCAN,
+	PARSE,
+	STATIC,
+	RUNTIME
+};
+
 class BaseError : public std::exception
 {
 	public:
 		int line;
 		Token token;
 		std::string message;
+        std::string name;
+        ErrorType type;
 
 		BaseError(int line, std::string message);
 		BaseError(Token token, std::string message);
+		void show();
 };
 
-class LexError : public BaseError
+class ScanError : public BaseError
 {
 	public:
-		LexError(int line, std::string message) : BaseError(line, message) {};
+		ScanError(int line, std::string message);
 };
 
 class ParseError : public BaseError
 {
 	public:
-		ParseError(Token token, std::string message) : BaseError(token, message) {};
+		ParseError(Token token, std::string message);
 };
 
-class ResolveError : public BaseError
+class StaticError : public BaseError
 {
 	public:
-		ResolveError(Token token, std::string message) : BaseError(token, message) {};
+		StaticError(Token token, std::string message);
 };
 
 class RuntimeError : public BaseError
 {
 	public:
-		RuntimeError(Token token, std::string message) : BaseError(token, message) {};
+		RuntimeError(Token token, std::string message);
 };
 
 class BreakError : public std::exception

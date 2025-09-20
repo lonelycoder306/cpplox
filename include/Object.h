@@ -8,6 +8,7 @@ struct Object
 
 	Object() {}
 	Object(std::any v) : value(v) {}
+	Object(std::nullptr_t) : value(nullptr) {}
 	std::string printVal();
     std::string printType();
 };

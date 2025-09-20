@@ -1,30 +1,44 @@
 #include "../include/Interpreter.h"
+#include "../include/Cleaner.h"
 #include "../include/Error.h"
 #include "../include/Expr.h"
 #include "../include/Lox.h"
+#include "../include/LoxCallable.h"
 #include "../include/LoxFunction.h"
 #include "../include/Nodes.h"
 #include "../include/Object.h"
 #include "../include/Overloads.h"
 #include "../include/Stmt.h"
+#include "../include/Types.h"
 #include <any>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <typeinfo>
 #include <vector>
 
+#define double(obj) std::any_cast<double>(obj.value)
+#define bool(obj) std::any_cast<bool>(obj.value)
+#define string(obj) std::any_cast<std::string>(obj.value)
+#define func(obj) std::any_cast<LoxFunction>(obj.value)
+
 // General methods.
 
 void Interpreter::interpret(vpS statements)
-{
+{    
     try
     {
-        for (Stmt* statement: statements)
-            execute(statement);
+        for (Stmt* stmt: statements)
+        {
+            execute(stmt);
+            // if (Cleaner::cleanable(stmt))
+            //     cleaner.clean(stmt);
+        }
+        // cleaner.clean(statements);
     }
     catch (RuntimeError& error)
     {
-        Lox::runtimeError(error);
+        error.show();
     }
 }
 
@@ -38,18 +52,33 @@ Object Interpreter::evaluate(Expr* expr)
     return expr->accept(*this);
 }
 
-void Interpreter::executeBlock(vpS statements, Environment environment)
+void Interpreter::executeBlock(vpS statements, Environment& environment)
 {
-    Environment previous = this->environment;
-    try {
-        this->environment = environment;
+    Environment* previous = this->environment;
+    try
+    {
+        this->environment = &environment;
 
-        for (Stmt* statement: statements)
-            execute(statement);
+        for (Stmt* stmt: statements)
+        {
+            execute(stmt);
+            // if (Cleaner::cleanable(stmt))
+            //     cleaner.clean(stmt);
+        }
     }
     catch (RuntimeError& error)
     {
-        // ...
+        this->environment = previous;
+        throw error;
+    }
+    // We need to catch it here (and rethrow it) so that
+    // the environment "unwrapping" happens smoothly.
+    // C++ doesn't have "finally" clauses, so this is the
+    // closest thing we have.
+    catch (ContinueError& error)
+    {
+        this->environment = previous;
+        throw error;
     }
     this->environment = previous;
 }
@@ -63,7 +92,7 @@ void Interpreter::resolve(Expr* expr, int depth)
 
 void Interpreter::visitBreakStmt(Break* stmt)
 {
-    if (loopLevel == 0) throw BreakError(stmt->breakCMD, stmt->loopType);
+    if (loopLevel != 0) throw BreakError(stmt->breakCMD, stmt->loopType);
 
     // Will only be thrown if break statement is reached.
     // Statement will not be reached after a false if-condition (for example).
@@ -73,12 +102,13 @@ void Interpreter::visitBreakStmt(Break* stmt)
 
 void Interpreter::visitBlockStmt(Block* stmt)
 {
-    executeBlock(stmt->statements, Environment(environment));
+    Environment newEnv(environment);
+    executeBlock(stmt->statements, newEnv);
 }
 
 void Interpreter::visitContinueStmt(Continue* stmt)
 {
-    if (loopLevel == 0) throw ContinueError(stmt->continueCMD, stmt->loopType);
+    if (loopLevel != 0) throw ContinueError(stmt->continueCMD, stmt->loopType);
 
     // Will only be thrown if continue statement is reached.
     // Statement will not be reached after a false if-condition (for example).
@@ -113,7 +143,7 @@ void Interpreter::visitFunctionStmt(Function* stmt)
     if (stmt->name.line != 0)
     {
         LoxFunction function(*stmt, environment, false);
-        environment.define(stmt->name.lexeme, Object(function));
+        environment->define(stmt->name.lexeme, Object(function));
     }
 }
 
@@ -148,7 +178,7 @@ void Interpreter::visitVarStmt(Var* stmt)
     if (stmt->initializer != nullptr)
         value = evaluate(stmt->initializer);
 
-    environment.define(stmt->name.lexeme, value);
+    environment->define(stmt->name.lexeme, value);
 }
 
 void Interpreter::visitWhileStmt(While* stmt)
@@ -156,14 +186,23 @@ void Interpreter::visitWhileStmt(While* stmt)
     loopLevel++;
     while(isTruthy(evaluate(stmt->condition)))
     {
-        try {
+        try
+        {
             execute(stmt->body);
         }
-        catch (BreakError& error) {
+        catch (BreakError& error)
+        {
+            (void) error;
             break;
         }
-        catch (ContinueError& error) {
-            // ...
+        catch (ContinueError& error)
+        {
+            if (error.loopType == "forLoop")
+            {
+                auto body = dynamic_cast<Block*>(stmt->body);
+                vpS statements = body->statements;
+                execute(statements[statements.size() - 1]);
+            }
         }
     }
     loopLevel--;
@@ -178,7 +217,7 @@ Object Interpreter::visitAssignExpr(Assign* expr)
     if (locals.contains(expr))
     {
         int distance = locals[expr];
-        environment.assignAt(distance, expr->name, value);
+        environment->assignAt(distance, expr->name, value);
     }
     else
         globals.assign(expr->name, value);
@@ -186,10 +225,22 @@ Object Interpreter::visitAssignExpr(Assign* expr)
     return value;
 }
 
-Object Interpreter::visitBinaryExpr(Binary* expr)
+Object Interpreter::plus(Binary* expr, Object left, Object right)
 {
-    #define double(value) std::any_cast<double>(value)
+    if ((type(left) == NUM) && (type(right) == NUM))
+        return Object(double(left) + double(right));
+    if ((type(left) == STR) && (type(right) == STR))
+        return Object(string(left) + string(right));
+    if (type(left) == STR)
+        return Object(string(left) + stringify(right));
+    if (type(right) == STR)
+        return Object(stringify(left) + string(right));
     
+    throw RuntimeError(expr->bOperator, "Cannot add given operands.");
+}
+
+Object Interpreter::visitBinaryExpr(Binary* expr)
+{    
     Object left = evaluate(expr->left);
     Object right = evaluate(expr->right);
 
@@ -197,32 +248,31 @@ Object Interpreter::visitBinaryExpr(Binary* expr)
     {
         case GREATER:
             checkNumberOperands(expr->bOperator, left, right);
-            return Object(double(left.value) > double(right.value));
+            return Object(double(left) > double(right));
         case GREATER_EQUAL:
             checkNumberOperands(expr->bOperator, left, right);
-            return Object(double(left.value) >= double(right.value));
+            return Object(double(left) >= double(right));
         case LESS:
             checkNumberOperands(expr->bOperator, left, right);
-            return Object(double(left.value) < double(right.value));
+            return Object(double(left) < double(right));
         case LESS_EQUAL:
             checkNumberOperands(expr->bOperator, left, right);
-            return Object(double(left.value) <= double(right.value));
+            return Object(double(left) <= double(right));
         case BANG_EQUAL: return Object(!isEqual(left, right));
         case EQUAL_EQUAL: return Object(isEqual(left, right));
         case MINUS:
             checkNumberOperands(expr->bOperator, left, right);
-            return Object(double(left.value) - double(right.value));
+            return Object(double(left) - double(right));
         case PLUS:
-            checkNumberOperands(expr->bOperator, left, right);
-            return Object(double(left.value) + double(right.value));
+            return plus(expr, left, right);
         case SLASH:
             checkNumberOperands(expr->bOperator, left, right);
-            if (double(right.value) == 0)
+            if (double(right) == 0)
                 throw RuntimeError(expr->bOperator, "Division by zero not allowed.");
-            return Object(double(left.value) / double(right.value));
+            return Object(double(left) / double(right));
         case STAR:
             checkNumberOperands(expr->bOperator, left, right);
-            return Object(double(left.value) * double(right.value));
+            return Object(double(left) * double(right));
         default:
             return Object(nullptr);
     }
@@ -237,13 +287,16 @@ Object Interpreter::visitCallExpr(Call* expr)
         arguments.push_back(evaluate(argument));
 
     // Change to match any child-class of LoxCallable.
-    if (!(callee.value.type() == typeid(LoxFunction)))
-        throw new RuntimeError(expr->paren, "Can only call functions and classes.");
+    if (!(type(callee) == LOXFUNC))
+        throw RuntimeError(expr->paren, "Can only call functions and classes.");
+
+    //#define type LoxCallable<LoxFunction>
 
     // LoxFunction instead of LoxCallable (temporarily).
-    LoxFunction function = std::any_cast<LoxFunction>(callee.value);
+    LoxFunction function = func(callee);
+    //type function = std::any_cast<type>(callee);
     if ((int) arguments.size() != function.arity())
-        throw new RuntimeError(expr->paren, "Expected " +
+        throw RuntimeError(expr->paren, "Expected " +
                 std::to_string(function.arity()) + " arguments but got " +
                 std::to_string(arguments.size()) + ".");
 
@@ -253,7 +306,7 @@ Object Interpreter::visitCallExpr(Call* expr)
 Object Interpreter::visitCommaExpr(Comma* expr)
 {
     vpE expressions = expr->expressions;
-    int expressionNumber = expressions.size();
+    int expressionNumber = (int) expressions.size();
     for (int i = 0; i < expressionNumber - 1; i++)
         evaluate(expressions[i]);
     return evaluate(expressions[expressionNumber - 1]);
@@ -263,9 +316,9 @@ Object Interpreter::visitCommaExpr(Comma* expr)
 Object Interpreter::visitGetExpr(Get* expr)
 {
     Object object = evaluate(expr->object);
-    if (object.value.type() == typeid(LoxInstance)) {
-        Object result = std::any_cast<LoxInstance>(object.value).get(expr->name);
-        if ((result.value.type() == typeid(LoxFunction)) && 
+    if (object.type() == typeid(LoxInstance)) {
+        Object result = std::any_cast<LoxInstance>(object).get(expr->name);
+        if ((result.type() == typeid(LoxFunction)) && 
             (std::any_cast<LoxFunction>(result)).isGetter())
             result = std::any_cast<LoxFunction>(result).call(*this, {});
 
@@ -313,7 +366,7 @@ Object Interpreter::visitSetExpr(Set* expr)
 {
     Object object = evaluate(expr->object);
 
-    if (!(object.value.type() == typeid(LoxInstance)))
+    if (!(object.type() == typeid(LoxInstance)))
         throw RuntimeError(expr->name, "Only instances have fields.");
 
     Object value = evaluate(expr->value);
@@ -326,16 +379,16 @@ Object Interpreter::visitSetExpr(Set* expr)
 Object Interpreter::visitSuperExpr(Super* expr)
 {
     int distance = locals[expr];
-    LoxClass superclass = environment.getAt(distance, expr.keyword);
+    LoxClass superclass = environment->getAt(distance, expr.keyword);
     Token dummyToken = new Token(TokenType.THIS, "this", "this", 0);
 
-    LoxInstance object = (LoxInstance)environment.getAt(
+    LoxInstance object = (LoxInstance)environment->getAt(
             distance - 1, dummyToken);
 
     LoxFunction method = superclass.findMethod(expr.method.lexeme);
 
     if (method == null) {
-        throw new RuntimeError(expr.method,
+        throw RuntimeError(expr.method,
                 "Undefined property '" + expr.method.lexeme + "'.");
     }
 
@@ -358,9 +411,7 @@ Object Interpreter::visitThisExpr(This* expr)
 */
 
 Object Interpreter::visitUnaryExpr(Unary* expr)
-{
-    #define double(value) std::any_cast<double>(value)
-    
+{    
     Object right = evaluate(expr->right);
 
     switch(expr->uOperator.type)
@@ -387,7 +438,7 @@ Object Interpreter::lookUpVariable(Token name, Expr *expr)
     if (locals.contains(expr))
     {
         int distance = locals[expr];
-        return environment.getAt(distance, name);
+        return environment->getAt(distance, name);
     }
     else
         return globals.get(name);
@@ -395,63 +446,57 @@ Object Interpreter::lookUpVariable(Token name, Expr *expr)
 
 void Interpreter::checkNumberOperand(Token bOperator, Object operand)
 {
-    if (operand.value.type() == typeid(double)) return;
+    if (type(operand) == NUM) return;
 
     throw RuntimeError(bOperator, "Operand must be a number.");
 }
 
 void Interpreter::checkNumberOperands(Token bOperator, Object left, Object right)
 {
-    if ((left.value.type() == typeid(double)) 
-        && (right.value.type() == typeid(double))) 
+    if ((type(left) == NUM) && (type(right) == NUM))
         return;
 
     throw RuntimeError(bOperator, "Operands must be numbers.");
 }
 
 bool Interpreter::isTruthy(Object object)
-{
-    #define bool(value) std::any_cast<bool>(value)
-    
-    if (object.value.type() == typeid(nullptr)) return true;
-    if (object.value.type() == typeid(bool)) return bool(object.value);
+{    
+    if (type(object) == NONE) return false;
+    if (type(object) == BOOL) return bool(object);
     return true;
 }
 
 bool Interpreter::isEqual(Object a, Object b)
 {
-    if ((a.value.type() == typeid(nullptr)) &&
-        (b.value.type() == typeid(nullptr)))
+    if ((type(a) == NONE) &&
+        (type(b) == NONE))
         return true;
     
-    if (a.value.type() == typeid(nullptr)) return false;
+    if (type(a) == NONE) return false;
 
     return (a.value == b.value);
 }
 
 std::string Interpreter::stringify(Object object)
 {
-    if (object.value.type() == typeid(nullptr)) return "nil";
+    if (type(object) == NONE) return "nil";
 
-    #define double(value) std::any_cast<double>(value)
-    #define bool(value) std::any_cast<bool>(value)
-    #define string(value) std::any_cast<std::string>(value)
-
-    if (object.value.type() == typeid(double))
+    if (type(object) == NUM)
     {
-        std::string doubleString = std::to_string(double(object.value));
+        std::string doubleString = std::to_string(double(object));
         size_t pos = doubleString.find(".0");
         if (pos != std::string::npos)
             return doubleString.substr(0, pos);
         return doubleString;
     }
-    if (object.value.type() == typeid(bool))
+    if (type(object) == BOOL)
     {
-        if (bool(object.value)) return "true";
+        if (bool(object)) return "true";
         else
             return "false";
     }
-    if (object.value.type() == typeid(std::string)) return string(object.value);
+    if (type(object) == STR) return string(object);
+    if (type(object) == LOXFUNC) return func(object).toString();
 
     return ""; // Random return value.
 }

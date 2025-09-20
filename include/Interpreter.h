@@ -1,4 +1,5 @@
 #pragma once
+#include "Cleaner.h"
 #include "Environment.h"
 #include "Expr.h"
 #include "Object.h"
@@ -44,7 +45,7 @@ class Interpreter : public Visitor
         void interpret(vpS);
         void execute(Stmt*);
         Object evaluate(Expr* expr);
-        void executeBlock(vpS statements, Environment environment);
+        void executeBlock(vpS statements, Environment& environment);
         void resolve(Expr* expr, int depth);
 
         // Statement methods.
@@ -80,9 +81,10 @@ class Interpreter : public Visitor
         Object visitVariableExpr(Variable* expr) override;
 
     private:
-        Environment environment = globals;
+        Environment* environment = &globals;
         std::map<Expr*, int> locals;
         int loopLevel = 0;
+        Cleaner cleaner;
 
         // Helper methods.
         Object lookUpVariable(Token name, Expr *expr);
@@ -91,4 +93,5 @@ class Interpreter : public Visitor
         bool isTruthy(Object object);
         bool isEqual(Object a, Object b);
         std::string stringify(Object object);
+        Object plus(Binary* expr, Object left, Object right);
 };

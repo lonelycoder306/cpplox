@@ -8,11 +8,14 @@
 #include "../include/Token.h"
 #include <string>
 
+#define FALSE -1
+#define TRUE 1
+
 // Constructor.
 
-Resolver::Resolver(Interpreter interpreter)
+Resolver::Resolver(Interpreter& interpreter)
 {
-    this->interpreter = interpreter;
+    this->interpreter = &interpreter;
 }
 
 // General methods.
@@ -31,22 +34,29 @@ void Resolver::declare(Token name)
 {
     if (scopes.size() == 0) return;
 
-    std::map<std::string, bool> scope = scopes[scopes.size() - 1];
+    std::map<std::string, int> scope = scopes[scopes.size() - 1];
     if (scope.contains(name.lexeme))
-        throw ResolveError(name, "Already a variable with this name in this scope.");
-    scopes[scopes.size() - 1][name.lexeme] = false;
+        throw StaticError(name, "Already a variable with this name in this scope.");
+    scopes[scopes.size() - 1][name.lexeme] = FALSE;
 }
 
 void Resolver::define(Token name)
 {
     if (scopes.size() == 0) return;
-    scopes[scopes.size() - 1][name.lexeme] = true;
+    scopes[scopes.size() - 1][name.lexeme] = TRUE;
 }
 
 void Resolver::resolve(vpS statements)
 {
-    for (Stmt* stmt: statements)
-        resolve(stmt);
+    try
+    {
+        for (Stmt* stmt : statements)
+            resolve(stmt);
+    }
+    catch (StaticError& error)
+    {
+        error.show();
+    }
 }
 
 void Resolver::resolve(Stmt* stmt)
@@ -56,7 +66,7 @@ void Resolver::resolve(Stmt* stmt)
 
 void Resolver::resolve(Expr* expr)
 {
-    expr->accept(*this); // Unused return value.
+    (void) expr->accept(*this); // Unused return value.
 }
 
 void Resolver::resolveLocal(Expr* expr, Token name)
@@ -65,7 +75,8 @@ void Resolver::resolveLocal(Expr* expr, Token name)
     {
         if (scopes[i].contains(name.lexeme))
         {
-            interpreter.resolve(expr, scopes.size() - 1 - i);
+            interpreter->resolve(expr, scopes.size() - 1 - i);
+            return;
         }
     }
 }
@@ -152,12 +163,12 @@ void Resolver::visitPrintStmt(Print* stmt)
 void Resolver::visitReturnStmt(Return* stmt)
 {
     if (currentFunction == NONE)
-        throw ResolveError(stmt->keyword, "Can't return from top-level code.");
+        throw StaticError(stmt->keyword, "Can't return from top-level code.");
 
     if (stmt->value != nullptr)
     {
         if (currentFunction == INITIALIZER)
-            throw ResolveError(stmt->keyword, "Can't return a value from an initializer.");
+            throw StaticError(stmt->keyword, "Can't return a value from an initializer.");
         resolve(stmt->value);
     }
 }
@@ -252,10 +263,9 @@ Object Resolver::visitUnaryExpr(Unary* expr)
 Object Resolver::visitVariableExpr(Variable* expr)
 {
     std::string name = expr->name.lexeme;
-    int size = (int) scopes.size();
     
-    if (!(size == 0) && (scopes[size - 1][name] == false))
-        throw ResolveError(expr->name, "Can't read local variable in its own initializer.");
+    if (!(scopes.size() == 0) && (scopes[scopes.size() - 1][name] == FALSE))
+        throw StaticError(expr->name, "Can't read local variable in its own initializer.");
 
     resolveLocal(expr, expr->name);
     return Object(nullptr);

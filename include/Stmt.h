@@ -14,6 +14,8 @@ class Stmt
         virtual bool operator==(Stmt& other) = 0;
 };
 
+class Declaration {};
+
 class Break : public Stmt
 {
     public:
@@ -61,7 +63,7 @@ class Continue : public Stmt
         bool operator==(Stmt& other) override;
 };
 
-class Function : public Stmt
+class Function : public Stmt, public Declaration
 {
     public:
         Token name;
@@ -116,7 +118,7 @@ class Return : public Stmt
         bool operator==(Stmt& other) override;
 };
 
-class Var : public Stmt
+class Var : public Stmt, public Declaration
 {
     public:
         Token name;

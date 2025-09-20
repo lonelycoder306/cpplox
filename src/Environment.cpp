@@ -18,16 +18,18 @@ Environment::Environment(Environment* enclosing)
 }
 
 Object Environment::get(Token name)
-{
-    if (values.contains(name.lexeme))
+{    
+    auto it = values.find(name.lexeme);
+    
+    if (it != values.end())
     {
-        Object obj = values[name.lexeme];
+        Object obj = it->second;
         // Check that value has been given a value.
         // Temporarily using int-type vectors to indicate no assigned value.
         if (!(obj.value.type() == typeid(std::vector<int>)))
             return obj;
 
-        throw new RuntimeError(name,
+        throw RuntimeError(name,
                 "Uninitialized variable '" + name.lexeme + "'.");
     }
 
@@ -59,21 +61,21 @@ void Environment::define(std::string name, Object value)
     values[name] = value;
 }
 
-Environment Environment::ancestor(int distance)
+Environment* Environment::ancestor(int distance)
 {
-    Environment environment = this;
+    Environment* environment = this;
     for (int i = 0; i < distance; i++)
-        environment = *(environment.enclosing);
+        environment = environment->enclosing;
 
     return environment;
 }
 
 Object Environment::getAt(int distance, Token name)
 {
-    return ancestor(distance).get(name);
+    return ancestor(distance)->get(name);
 }
 
 void Environment::assignAt(int distance, Token name, Object value)
 {
-    ancestor(distance).assign(name, value);
+    ancestor(distance)->assign(name, value);
 }
