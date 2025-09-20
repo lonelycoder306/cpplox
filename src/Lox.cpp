@@ -97,7 +97,7 @@ void Lox::report(BaseError& error, std::string where)
     int line = error.type == SCAN ? error.line : error.token.line;
     std::string message = error.message;
 
-    std::cerr << error.name + " error"  +  where << " [line " << line << "]: " <<
+    std::cerr << error.name + " error" + where << " [line " << line << "]: " <<
         message << '\n';
 
 	if (error.type == RUNTIME)
