@@ -9,7 +9,7 @@
 class LoxInstance
 {
     public:
-        LoxInstance(LoxClass klass);
+        LoxInstance(const LoxClass& klass);
         Object get(Token name);
         void set(Token name, Object value);
         std::string toString();

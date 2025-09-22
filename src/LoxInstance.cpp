@@ -8,7 +8,7 @@
 #include <iostream>
 #include <string>
 
-LoxInstance::LoxInstance(LoxClass klass) :
+LoxInstance::LoxInstance(const LoxClass& klass) :
     klass(klass) {}
 
 Object LoxInstance::get(Token name)
