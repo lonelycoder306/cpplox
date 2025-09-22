@@ -1,4 +1,5 @@
 #pragma once
+#include "ClassInstance.h"
 #include "Environment.h"
 #include "LoxCallable.h"
 // #include "LoxInstance.h"
@@ -20,6 +21,7 @@ class LoxFunction final : public LoxCallable//<LoxFunction>
         LoxFunction(Function declaration, Environment closure, bool isInitializer);
         ~LoxFunction() = default;
         LoxFunction bind(LoxInstance* instance);
+        LoxFunction bind(ClassInstance* instance);
         Object call(Interpreter interpreter, std::vector<Object> arguments);
         bool isGetter();
         int arity();

@@ -5,8 +5,9 @@
 #include "../include/Object.h"
 #include <string>
 
-LoxClass::LoxClass(std::string name, LoxClass* superclass, 
-                    std::map<std::string, LoxFunction> methods)
+LoxClass::LoxClass(std::string name, LoxClass* metaclass,
+    LoxClass* superclass, std::map<std::string, LoxFunction> methods) :
+        ClassInstance(Object(metaclass))
 {
     this->name = name;
     this->superclass = superclass;

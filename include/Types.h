@@ -8,9 +8,10 @@ enum Type {
 	NUM,
 	STR,
 	BOOL,
-	LOXFUNC,
-    LOXCLASS,
-    INSTANCE,
+	LOX_FUNC,
+    LOX_CLASS,
+    LOX_INST,
+    CLASS_INST,
 	NONE,
 	INVALID
 };

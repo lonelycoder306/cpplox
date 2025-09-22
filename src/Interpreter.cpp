@@ -1,5 +1,6 @@
 #include "../include/Interpreter.h"
 // #include "../include/Cleaner.h"
+#include "../include/ClassInstance.h"
 #include "../include/Error.h"
 #include "../include/Expr.h"
 #include "../include/Lox.h"
@@ -25,6 +26,7 @@
 #define func(obj) std::any_cast<LoxFunction>(obj.value)
 #define class(obj) std::any_cast<LoxClass>(obj.value)
 #define instance(obj) std::any_cast<LoxInstance *>(obj.value)
+#define classinst(obj) std::any_cast<LoxClass *>(obj.value)
 
 // General methods.
 
@@ -127,7 +129,7 @@ void Interpreter::visitClassStmt(Class* stmt)
     if (stmt->superclass != nullptr)
     {
         superclass = evaluate(stmt->superclass);
-        if (type(superclass) != LOXCLASS)
+        if (type(superclass) != LOX_CLASS)
             throw RuntimeError(superclassVar->name,
                         "Superclass must be a class");
     }
@@ -155,6 +157,9 @@ void Interpreter::visitClassStmt(Class* stmt)
         classMethods[func->name.lexeme] = function;
     }
 
+    LoxClass* metaclassPtr = new LoxClass(stmt->name.lexeme + " metaclass", nullptr, nullptr,
+                                  classMethods);
+
     std::map<std::string, LoxFunction> methods;
     for (Stmt* stmt : stmt->methods)
     {
@@ -163,7 +168,7 @@ void Interpreter::visitClassStmt(Class* stmt)
         methods[func->name.lexeme] = function;
     }
 
-    LoxClass klass = LoxClass(stmt->name.lexeme, superclassPtr, methods);
+    LoxClass klass = LoxClass(stmt->name.lexeme, metaclassPtr, superclassPtr, methods);
 
     if (stmt->superclass != nullptr)
         environment = environment->enclosing;
@@ -359,15 +364,15 @@ Object Interpreter::visitCallExpr(Call* expr)
         arguments.push_back(evaluate(argument));
 
     // Change to match any child-class of LoxCallable.
-    if (!(type(callee) == LOXFUNC) && !(type(callee) == LOXCLASS))
+    if (!(type(callee) == LOX_FUNC) && !(type(callee) == LOX_CLASS))
         throw RuntimeError(expr->paren, "Can only call functions and classes.");
 
     //#define type LoxCallable<LoxFunction>
 
     // LoxFunction instead of LoxCallable (temporarily).
-    if (type(callee) == LOXFUNC)
+    if (type(callee) == LOX_FUNC)
         return callFunc(callee, arguments, expr);
-    if (type(callee) == LOXCLASS)
+    if (type(callee) == LOX_CLASS)
         return callClass(callee, arguments, expr);
     return Object(nullptr); // Unreachable.
 }
@@ -384,15 +389,17 @@ Object Interpreter::visitCommaExpr(Comma* expr)
 Object Interpreter::visitGetExpr(Get* expr)
 {
     Object object = evaluate(expr->object);
-    if (type(object) == INSTANCE)
+    if (type(object) == LOX_INST)
     {
         Object result = instance(object)->get(expr->name);
-        if ((type(result) == LOXFUNC) && 
+        if ((type(result) == LOX_FUNC) && 
             (func(result)).isGetter())
                 result = std::any_cast<LoxFunction>(result).call(*this, {});
 
         return result;
     }
+    if (type(object) == LOX_CLASS)
+        return class(object).get(expr->name);
 
     throw RuntimeError(expr->name, "Only instances have properties.");
 }
@@ -433,11 +440,14 @@ Object Interpreter::visitSetExpr(Set* expr)
 {
     Object object = evaluate(expr->object);
 
-    if (type(object) != INSTANCE)
+    if (type(object) != LOX_INST)
         throw RuntimeError(expr->name, "Only instances have fields.");
 
     Object value = evaluate(expr->value);
-    instance(object)->set(expr->name, value);
+    if (type(object) == LOX_INST)
+        instance(object)->set(expr->name, value);
+    else if (type(object) == CLASS_INST)
+        classinst(object)->set(expr->name, value);
     return value;
 }
 
@@ -556,9 +566,9 @@ std::string Interpreter::stringify(Object object)
             return "false";
     }
     if (type(object) == STR) return string(object);
-    if (type(object) == LOXFUNC) return func(object).toString();
-    if (type(object) == LOXCLASS) return class(object).toString();
-    if (type(object) == INSTANCE) return instance(object)->toString();
+    if (type(object) == LOX_FUNC) return func(object).toString();
+    if (type(object) == LOX_CLASS) return class(object).toString();
+    if (type(object) == LOX_INST) return instance(object)->toString();
 
     return ""; // Random return value.
 }

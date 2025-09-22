@@ -1,4 +1,5 @@
 #include "../include/LoxFunction.h"
+#include "../include/ClassInstance.h"
 #include "../include/Environment.h"
 #include "../include/Error.h"
 #include "../include/Interpreter.h"
@@ -16,6 +17,13 @@ LoxFunction::LoxFunction(Function declaration, Environment closure, bool isIniti
 }
 
 LoxFunction LoxFunction::bind(LoxInstance* instance)
+{
+    Environment environment = new Environment(closure);
+    environment.define("this", Object(instance));
+    return LoxFunction(declaration, environment, isInitializer);
+}
+
+LoxFunction LoxFunction::bind(ClassInstance* instance)
 {
     Environment environment = new Environment(closure);
     environment.define("this", Object(instance));

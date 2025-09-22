@@ -1,4 +1,5 @@
 #include "../include/Types.h"
+#include "../include/ClassInstance.h"
 #include "../include/LoxClass.h"
 #include "../include/LoxFunction.h"
 #include "../include/LoxInstance.h"
@@ -16,11 +17,13 @@ Type type(std::any value)
 	if (value.type() == typeid(bool))
 		return BOOL;
 	if (value.type() == typeid(LoxFunction))
-		return LOXFUNC;
+		return LOX_FUNC;
     if (value.type() == typeid(LoxClass))
-        return LOXCLASS;
+        return LOX_CLASS;
     if (value.type() == typeid(LoxInstance *))
-        return INSTANCE;
+        return LOX_INST;
+    if (value.type() == typeid(ClassInstance *))
+        return CLASS_INST;
     if (value.type() == typeid(std::nullptr_t))
 		return NONE;
 	return INVALID;
