@@ -14,10 +14,10 @@ class Resolver : public Visitor
     private:
         Interpreter* interpreter;
         std::vector<std::map<std::string, int>> scopes;
-        enum FunctionType { NONE, FUNCTION, LAMBDA, INITIALIZER, METHOD };
-        // enum ClassType {};
-        FunctionType currentFunction = NONE;
-        // ClassType currentClass;
+        enum FunctionType { NOFUNC, FUNCTION, LAMBDA, INITIALIZER, METHOD };
+        enum ClassType { NOCLASS, CLASS, SUBCLASS };
+        FunctionType currentFunction = NOFUNC;
+        ClassType currentClass = NOCLASS;
     
     public:
         Resolver(Interpreter& interpreter);
@@ -39,7 +39,7 @@ class Resolver : public Visitor
 
         void visitBreakStmt(Break* stmt) override;
         void visitBlockStmt(Block* stmt) override;
-        // void visitClassStmt(Class* stmt) override;
+        void visitClassStmt(Class* stmt) override;
         void visitContinueStmt(Continue* stmt) override;
         void visitExpressionStmt(Expression* stmt) override;
         void visitFunctionStmt(Function* stmt) override;
@@ -57,15 +57,15 @@ class Resolver : public Visitor
         Object visitBinaryExpr(Binary* expr) override;
         Object visitCallExpr(Call* expr) override;
         Object visitCommaExpr(Comma* expr) override;
-        // Object visitGetExpr(Get* expr) override;
+        Object visitGetExpr(Get* expr) override;
         Object visitGroupingExpr(Grouping* expr) override;
         Object visitLambdaExpr(Lambda* expr) override;
         Object visitLiteralExpr(Literal* expr) override;
         Object visitLogicalExpr(Logical* expr) override;
-        // Object visitSetExpr(Set* expr) override;
-        // Object visitSuperExpr(Super* expr) override;
+        Object visitSetExpr(Set* expr) override;
+        Object visitSuperExpr(Super* expr) override;
         Object visitTernaryExpr(Ternary* expr) override;
-        // Object visitThisExpr(This* expr) override;
+        Object visitThisExpr(This* expr) override;
         Object visitUnaryExpr(Unary* expr) override;
         Object visitVariableExpr(Variable* expr) override;
 };

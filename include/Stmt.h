@@ -37,7 +37,6 @@ class Block : public Stmt
         bool operator==(Stmt& other) override;
 };
 
-/*
 class Class : public Stmt
 {
     public:
@@ -50,7 +49,6 @@ class Class : public Stmt
         void accept(Visitor& visitor) override;
         bool operator==(Stmt& other) override;
 };
-*/
 
 class Continue : public Stmt
 {
@@ -70,6 +68,7 @@ class Function : public Stmt, public Declaration
         vT* params;
         vpS body;
 
+        Function() = default;
         Function(Token name, vT* params, vpS body);
         void accept(Visitor& visitor) override;
         bool operator==(Stmt& other) override;

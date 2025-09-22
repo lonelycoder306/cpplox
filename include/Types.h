@@ -9,6 +9,8 @@ enum Type {
 	STR,
 	BOOL,
 	LOXFUNC,
+    LOXCLASS,
+    INSTANCE,
 	NONE,
 	INVALID
 };

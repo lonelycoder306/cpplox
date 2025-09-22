@@ -59,7 +59,6 @@ class Comma : public Expr
         bool operator==(Expr& other) override;
 };
 
-/*
 class Get : public Expr
 {
     public:
@@ -70,7 +69,6 @@ class Get : public Expr
         Object accept(Visitor& visitor) override;
         bool operator==(Expr& other) override;
 };
-*/
 
 class Grouping : public Expr
 {
@@ -115,7 +113,6 @@ class Logical : public Expr
         bool operator==(Expr& other) override;
 };
 
-/*
 class Set : public Expr
 {
     public:
@@ -138,7 +135,6 @@ class Super : public Expr
         Object accept(Visitor& visitor) override;
         bool operator==(Expr& other) override;
 };
-*/
 
 class Ternary : public Expr
 {
@@ -152,7 +148,6 @@ class Ternary : public Expr
         bool operator==(Expr& other) override;
 };
 
-/*
 class This : public Expr
 {
     public:
@@ -162,7 +157,6 @@ class This : public Expr
         Object accept(Visitor& visitor) override;
         bool operator==(Expr& other) override;
 };
-*/
 
 class Unary : public Expr
 {

@@ -129,6 +129,51 @@ void Resolver::visitBlockStmt(Block* stmt)
     endScope();
 }
 
+void Resolver::visitClassStmt(Class* stmt)
+{
+    ClassType enclosingClass = currentClass;
+    currentClass = CLASS;
+
+    declare(stmt->name);
+    define(stmt->name);
+
+    auto super = dynamic_cast<Variable *>(stmt->superclass);
+    if ((stmt->superclass != nullptr) &&
+        (stmt->name.lexeme == super->name.lexeme))
+            throw StaticError(super->name, "A class can't inherit from itself.");
+    
+    if (stmt->superclass != nullptr)
+    {
+        currentClass = SUBCLASS;
+        resolve(stmt->superclass);
+    }
+
+    if (stmt->superclass != nullptr)
+    {
+        beginScope();
+        scopes[scopes.size() - 1]["super"] = TRUE;
+    }
+
+    beginScope();
+    scopes[scopes.size() - 1]["this"] = TRUE;
+
+    for (Stmt* method : stmt->methods)
+    {
+        FunctionType declaration = METHOD;
+        auto func = dynamic_cast<Function *>(method);
+        if (func->name == "init")
+            declaration = INITIALIZER;
+        
+        resolveFunction(func, declaration);
+    }
+
+    endScope();
+
+    if (stmt->superclass != nullptr) endScope();
+
+    currentClass = enclosingClass;
+}
+
 void Resolver::visitContinueStmt(Continue* stmt)
 {
     (void) stmt;
@@ -162,7 +207,7 @@ void Resolver::visitPrintStmt(Print* stmt)
 
 void Resolver::visitReturnStmt(Return* stmt)
 {
-    if (currentFunction == NONE)
+    if (currentFunction == NOFUNC)
         throw StaticError(stmt->keyword, "Can't return from top-level code.");
 
     if (stmt->value != nullptr)
@@ -221,6 +266,12 @@ Object Resolver::visitCommaExpr(Comma* expr)
     return Object(nullptr);
 }
 
+Object Resolver::visitGetExpr(Get* expr)
+{
+    resolve(expr->object);
+    return Object(nullptr);
+}
+
 Object Resolver::visitGroupingExpr(Grouping* expr)
 {
     resolve(expr->expression);
@@ -246,11 +297,37 @@ Object Resolver::visitLogicalExpr(Logical* expr)
     return Object(nullptr);
 }
 
+Object Resolver::visitSetExpr(Set* expr)
+{
+    resolve(expr->value);
+    resolve(expr->object);
+    return Object(nullptr);
+}
+
+Object Resolver::visitSuperExpr(Super* expr)
+{
+    if (currentClass == NOCLASS)
+        throw StaticError(expr->keyword, "Can't use 'super' outside of a class.");
+    else if (currentClass == CLASS)
+        throw StaticError(expr->keyword, "Can't use 'super' outside of a subclass.");
+    resolveLocal(expr, expr->keyword);
+    return Object(nullptr);
+}
+
 Object Resolver::visitTernaryExpr(Ternary* expr)
 {
     resolve(expr->condition);
     resolve(expr->trueBranch);
     resolve(expr->falseBranch);
+    return Object(nullptr);
+}
+
+Object Resolver::visitThisExpr(This* expr)
+{
+    if (currentClass == NOCLASS)
+        throw StaticError(expr->keyword, "Can't use 'this' outside of a class.");
+
+    resolveLocal(expr, expr->keyword);
     return Object(nullptr);
 }
 

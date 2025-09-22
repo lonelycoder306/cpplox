@@ -96,7 +96,6 @@ bool Comma::operator==(Expr& other)
     return (this->expressions == check->expressions);
 }
 
-/*
 // Get.
 Get::Get(Expr* object, Token name)
 {
@@ -116,7 +115,6 @@ bool Get::operator==(Expr& other)
     return ((*(this->object) == *(check->object)) &&
             (this->name == check->name));
 }
-*/
 
 // Grouping.
 Grouping::Grouping(Expr* expression)
@@ -196,7 +194,6 @@ bool Logical::operator==(Expr& other)
             (*(this->right) == *(check->right)));
 }
 
-/*
 // Set.
 Set::Set(Expr* object, Token name, Expr* value)
 {
@@ -219,9 +216,7 @@ bool Set::operator==(Expr& other)
             (this->name == check->name) &&
             (*(this->value) == *(check->value)));
 }
-*/
 
-/*
 // Super.
 Super::Super(Token keyword, Token method)
 {
@@ -242,7 +237,6 @@ bool Super::operator==(Expr& other)
     return ((this->keyword == check->keyword) &&
             (this->method == check->method));
 }
-*/
 
 // Ternary.
 Ternary::Ternary(Expr* condition, Expr* trueBranch, Expr* falseBranch)
@@ -266,7 +260,6 @@ bool Ternary::operator==(Expr& other)
             (*(this->falseBranch) == *(check->falseBranch)));
 }
 
-/*
 // This.
 This::This(Token keyword)
 {
@@ -284,7 +277,6 @@ bool This::operator==(Expr& other)
     if (!check) return false;
     return (this->keyword == check->keyword);
 }
-*/
 
 // Unary.
 Unary::Unary(Token uOperator, Expr* right)

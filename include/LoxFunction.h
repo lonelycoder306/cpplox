@@ -8,6 +8,7 @@
 #include <vector>
 
 class Interpreter;
+class LoxInstance;
 
 // final: No sub-classes (destructor can be non-virtual).
 class LoxFunction final : public LoxCallable//<LoxFunction>
@@ -15,9 +16,10 @@ class LoxFunction final : public LoxCallable//<LoxFunction>
     public:
         Function declaration;
 
+        LoxFunction() = default;
         LoxFunction(Function declaration, Environment closure, bool isInitializer);
         ~LoxFunction() = default;
-        // LoxFunction bind(LoxInstance instance);
+        LoxFunction bind(LoxInstance* instance);
         Object call(Interpreter interpreter, std::vector<Object> arguments);
         bool isGetter();
         int arity();

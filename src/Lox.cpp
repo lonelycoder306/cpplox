@@ -1,5 +1,5 @@
 #include "../include/Lox.h"
-#include "../include/Cleaner.h"
+// #include "../include/Cleaner.h"
 #include "../include/Error.h"
 #include "../include/Interpreter.h"
 #include "../include/Nodes.h"

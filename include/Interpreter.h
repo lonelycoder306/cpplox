@@ -1,5 +1,5 @@
 #pragma once
-#include "Cleaner.h"
+// #include "Cleaner.h"
 #include "Environment.h"
 #include "Expr.h"
 #include "Object.h"
@@ -52,7 +52,7 @@ class Interpreter : public Visitor
 
         void visitBreakStmt(Break* stmt) override;
         void visitBlockStmt(Block* stmt) override;
-        // void visitClassStmt(Class* stmt) override;
+        void visitClassStmt(Class* stmt) override;
         void visitContinueStmt(Continue* stmt) override;
         void visitExpressionStmt(Expression* stmt) override;
         void visitFunctionStmt(Function* stmt) override;
@@ -68,15 +68,15 @@ class Interpreter : public Visitor
         Object visitBinaryExpr(Binary* expr) override;
         Object visitCallExpr(Call* expr) override;
         Object visitCommaExpr(Comma* expr) override;
-        // Object visitGetExpr(Get* expr) override;
+        Object visitGetExpr(Get* expr) override;
         Object visitGroupingExpr(Grouping* expr) override;
         Object visitLambdaExpr(Lambda* expr) override;
         Object visitLiteralExpr(Literal* expr) override;
         Object visitLogicalExpr(Logical* expr) override;
-        // Object visitSetExpr(Set* expr) override;
-        // Object visitSuperExpr(Super* expr) override;
+        Object visitSetExpr(Set* expr) override;
+        Object visitSuperExpr(Super* expr) override;
         Object visitTernaryExpr(Ternary* expr) override;
-        // Object visitThisExpr(This* expr) override;
+        Object visitThisExpr(This* expr) override;
         Object visitUnaryExpr(Unary* expr) override;
         Object visitVariableExpr(Variable* expr) override;
 
@@ -84,7 +84,7 @@ class Interpreter : public Visitor
         Environment* environment = &globals;
         std::map<Expr*, int> locals;
         int loopLevel = 0;
-        Cleaner cleaner;
+        // Cleaner cleaner;
 
         // Helper methods.
         Object lookUpVariable(Token name, Expr *expr);
@@ -94,4 +94,6 @@ class Interpreter : public Visitor
         bool isEqual(Object a, Object b);
         std::string stringify(Object object);
         Object plus(Binary* expr, Object left, Object right);
+        Object callFunc(Object callee, std::vector<Object> arguments, Call* expr);
+        Object callClass(Object callee, std::vector<Object> arguments, Call* expr);
 };

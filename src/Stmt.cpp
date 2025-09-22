@@ -47,7 +47,6 @@ bool Block::operator==(Stmt& other)
     return (this->statements == check->statements);
 }
 
-/*
 // Class.
 Class::Class(Token name, Expr* superclass, vpS methods, vpS classMethods)
 {
@@ -71,7 +70,6 @@ bool Class::operator==(Stmt& other)
             (this->methods == check->methods) &&
             (this->classMethods) == check->classMethods);
 }
-*/
 
 // Continue.
 Continue::Continue(Token continueCMD, std::string loopType)

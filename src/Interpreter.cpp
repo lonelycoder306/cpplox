@@ -1,10 +1,12 @@
 #include "../include/Interpreter.h"
-#include "../include/Cleaner.h"
+// #include "../include/Cleaner.h"
 #include "../include/Error.h"
 #include "../include/Expr.h"
 #include "../include/Lox.h"
 #include "../include/LoxCallable.h"
+#include "../include/LoxClass.h"
 #include "../include/LoxFunction.h"
+#include "../include/LoxInstance.h"
 #include "../include/Nodes.h"
 #include "../include/Object.h"
 #include "../include/Overloads.h"
@@ -21,6 +23,8 @@
 #define bool(obj) std::any_cast<bool>(obj.value)
 #define string(obj) std::any_cast<std::string>(obj.value)
 #define func(obj) std::any_cast<LoxFunction>(obj.value)
+#define class(obj) std::any_cast<LoxClass>(obj.value)
+#define instance(obj) std::any_cast<LoxInstance *>(obj.value)
 
 // General methods.
 
@@ -116,19 +120,63 @@ void Interpreter::visitContinueStmt(Continue* stmt)
             "Cannot have 'continue' outside loop.");
 }
 
-/*
 void Interpreter::visitClassStmt(Class* stmt)
 {
-    // ...
+    Object superclass(nullptr);
+    auto superclassVar = dynamic_cast<Variable *>(stmt->superclass);
+    if (stmt->superclass != nullptr)
+    {
+        superclass = evaluate(stmt->superclass);
+        if (type(superclass) != LOXCLASS)
+            throw RuntimeError(superclassVar->name,
+                        "Superclass must be a class");
+    }
+
+    environment->define(stmt->name.lexeme, Object(nullptr));
+
+    if (stmt->superclass != nullptr)
+    {
+        environment = new Environment(environment);
+        environment->define("super", superclass);
+    }
+
+    LoxClass* superclassPtr = nullptr;
+    if (stmt->superclass != nullptr)
+    {
+        LoxClass super = class(superclass);
+        superclassPtr = new LoxClass(super);
+    }
+
+    std::map<std::string, LoxFunction> classMethods;
+    for (Stmt* stmt : stmt->classMethods)
+    {
+        auto func = dynamic_cast<Function *>(stmt);
+        LoxFunction function = LoxFunction(*func, environment, false);
+        classMethods[func->name.lexeme] = function;
+    }
+
+    std::map<std::string, LoxFunction> methods;
+    for (Stmt* stmt : stmt->methods)
+    {
+        auto func = dynamic_cast<Function *>(stmt);
+        LoxFunction function = LoxFunction(*func, environment, (func->name.lexeme == "init"));
+        methods[func->name.lexeme] = function;
+    }
+
+    LoxClass klass = LoxClass(stmt->name.lexeme, superclassPtr, methods);
+
+    if (stmt->superclass != nullptr)
+        environment = environment->enclosing;
+    
+    environment->assign(stmt->name, Object(klass));
 }
-*/
 
 void Interpreter::visitExpressionStmt(Expression* stmt)
 {
     // Print out the return value of any expression statement (except assignments and function calls).
     if (!(dynamic_cast<Assign *>(stmt->expression)) &&
-        !(dynamic_cast<Call *>(stmt->expression)) /*&&
-        !(dynamic_cast<Set *>(stmt->expression))*/)
+        !(dynamic_cast<Call *>(stmt->expression)) &&
+        !(dynamic_cast<Set *>(stmt->expression)))
     {
         visitPrintStmt(new Print(stmt->expression));
     }
@@ -278,6 +326,30 @@ Object Interpreter::visitBinaryExpr(Binary* expr)
     }
 }
 
+Object Interpreter::callFunc(Object callee, std::vector<Object> arguments, Call* expr)
+{
+    LoxFunction function = func(callee);
+    //type function = std::any_cast<type>(callee);
+    if ((int)arguments.size() != function.arity())
+        throw RuntimeError(expr->paren, "Expected " +
+            std::to_string(function.arity()) + " arguments but got " +
+            std::to_string(arguments.size()) + ".");
+
+    return function.call(*this, arguments);
+}
+
+Object Interpreter::callClass(Object callee, std::vector<Object> arguments, Call* expr)
+{
+    LoxClass klass = class(callee);
+    //type function = std::any_cast<type>(callee);
+    if ((int)arguments.size() != klass.arity())
+        throw RuntimeError(expr->paren, "Expected " +
+            std::to_string(klass.arity()) + " arguments but got " +
+            std::to_string(arguments.size()) + ".");
+
+    return klass.call(*this, arguments);
+}
+
 Object Interpreter::visitCallExpr(Call* expr)
 {
     Object callee = evaluate(expr->callee);
@@ -287,20 +359,17 @@ Object Interpreter::visitCallExpr(Call* expr)
         arguments.push_back(evaluate(argument));
 
     // Change to match any child-class of LoxCallable.
-    if (!(type(callee) == LOXFUNC))
+    if (!(type(callee) == LOXFUNC) && !(type(callee) == LOXCLASS))
         throw RuntimeError(expr->paren, "Can only call functions and classes.");
 
     //#define type LoxCallable<LoxFunction>
 
     // LoxFunction instead of LoxCallable (temporarily).
-    LoxFunction function = func(callee);
-    //type function = std::any_cast<type>(callee);
-    if ((int) arguments.size() != function.arity())
-        throw RuntimeError(expr->paren, "Expected " +
-                std::to_string(function.arity()) + " arguments but got " +
-                std::to_string(arguments.size()) + ".");
-
-    return function.call(*this, arguments);
+    if (type(callee) == LOXFUNC)
+        return callFunc(callee, arguments, expr);
+    if (type(callee) == LOXCLASS)
+        return callClass(callee, arguments, expr);
+    return Object(nullptr); // Unreachable.
 }
 
 Object Interpreter::visitCommaExpr(Comma* expr)
@@ -312,22 +381,21 @@ Object Interpreter::visitCommaExpr(Comma* expr)
     return evaluate(expressions[expressionNumber - 1]);
 }
 
-/*
 Object Interpreter::visitGetExpr(Get* expr)
 {
     Object object = evaluate(expr->object);
-    if (object.type() == typeid(LoxInstance)) {
-        Object result = std::any_cast<LoxInstance>(object).get(expr->name);
-        if ((result.type() == typeid(LoxFunction)) && 
-            (std::any_cast<LoxFunction>(result)).isGetter())
-            result = std::any_cast<LoxFunction>(result).call(*this, {});
+    if (type(object) == INSTANCE)
+    {
+        Object result = instance(object)->get(expr->name);
+        if ((type(result) == LOXFUNC) && 
+            (func(result)).isGetter())
+                result = std::any_cast<LoxFunction>(result).call(*this, {});
 
         return result;
     }
 
     throw RuntimeError(expr->name, "Only instances have properties.");
 }
-*/
 
 Object Interpreter::visitGroupingExpr(Grouping* expr)
 {
@@ -361,40 +429,34 @@ Object Interpreter::visitLogicalExpr(Logical* expr)
     return evaluate(expr->right);
 }
 
-/*
 Object Interpreter::visitSetExpr(Set* expr)
 {
     Object object = evaluate(expr->object);
 
-    if (!(object.type() == typeid(LoxInstance)))
+    if (type(object) != INSTANCE)
         throw RuntimeError(expr->name, "Only instances have fields.");
 
     Object value = evaluate(expr->value);
-    std::any_cast<LoxInstance>(object).set(expr->name, value);
+    instance(object)->set(expr->name, value);
     return value;
 }
-*/
 
-/*
 Object Interpreter::visitSuperExpr(Super* expr)
 {
     int distance = locals[expr];
-    LoxClass superclass = environment->getAt(distance, expr.keyword);
-    Token dummyToken = new Token(TokenType.THIS, "this", "this", 0);
+    LoxClass superclass = class(environment->getAt(distance, expr->keyword));
+    Token dummyToken = Token(THIS, "this", Object("this"), 0);
 
-    LoxInstance object = (LoxInstance)environment->getAt(
-            distance - 1, dummyToken);
+    LoxInstance* object = instance(environment->getAt(distance - 1, dummyToken));
 
-    LoxFunction method = superclass.findMethod(expr.method.lexeme);
+    if (!superclass.hasMethod(expr->method.lexeme))
+        throw RuntimeError(expr->method,
+                "Undefined property '" + expr->method.lexeme + "'.");
 
-    if (method == null) {
-        throw RuntimeError(expr.method,
-                "Undefined property '" + expr.method.lexeme + "'.");
-    }
+    LoxFunction method = superclass.findMethod(expr->method.lexeme);
 
-    return method.bind(object);
+    return Object(method.bind(object));
 }
-*/
 
 Object Interpreter::visitTernaryExpr(Ternary* expr)
 {
@@ -403,12 +465,10 @@ Object Interpreter::visitTernaryExpr(Ternary* expr)
     return evaluate(expr->falseBranch);
 }
 
-/*
 Object Interpreter::visitThisExpr(This* expr)
 {
     return lookUpVariable(expr->keyword, expr);
 }
-*/
 
 Object Interpreter::visitUnaryExpr(Unary* expr)
 {    
@@ -497,6 +557,8 @@ std::string Interpreter::stringify(Object object)
     }
     if (type(object) == STR) return string(object);
     if (type(object) == LOXFUNC) return func(object).toString();
+    if (type(object) == LOXCLASS) return class(object).toString();
+    if (type(object) == INSTANCE) return instance(object)->toString();
 
     return ""; // Random return value.
 }

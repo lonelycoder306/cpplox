@@ -1,7 +1,8 @@
+#include "../include/LoxFunction.h"
 #include "../include/Environment.h"
 #include "../include/Error.h"
 #include "../include/Interpreter.h"
-#include "../include/LoxFunction.h"
+#include "../include/LoxInstance.h"
 #include "../include/Object.h"
 #include "../include/Stmt.h"
 #include <string>
@@ -14,14 +15,12 @@ LoxFunction::LoxFunction(Function declaration, Environment closure, bool isIniti
     this->isInitializer = isInitializer;
 }
 
-/*
-LoxFunction LoxFunction::bind(LoxInstance instance)
+LoxFunction LoxFunction::bind(LoxInstance* instance)
 {
     Environment environment = new Environment(closure);
     environment.define("this", Object(instance));
     return LoxFunction(declaration, environment, isInitializer);
 }
-*/
 
 Object LoxFunction::call(Interpreter interpreter, std::vector<Object> arguments)
 {

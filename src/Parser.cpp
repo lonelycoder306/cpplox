@@ -32,7 +32,7 @@ Stmt* Parser::declaration()
 {
     try
     {
-        // if (match(CLASS)) return classDeclaration();
+        if (match(CLASS)) return classDeclaration();
         if (match(FUN))
         {
             if (check(IDENTIFIER)) return function("function");
@@ -76,7 +76,6 @@ Stmt* Parser::breakStatement()
     return new Break(breakToken, loopType);
 }
 
-/*
 Stmt* Parser::classDeclaration()
 {
     Token name = consume(IDENTIFIER, "Expect class name.");
@@ -99,7 +98,6 @@ Stmt* Parser::classDeclaration()
 
     return new Class(name, superclass, methods, classMethods);
 }
-*/
 
 Stmt* Parser::continueStatement()
 {
@@ -334,13 +332,11 @@ Expr* Parser::assignment()
             return new Assign(name, value);
         }
 
-        /*
         else if (dynamic_cast<Get*>(expr))
         {
             Get* get = (Get*) expr;
             return new Set(get->object, get->name, value);
         }
-        */
 
         throw ParseError(equals, "Invalid assignment target.");
     }
@@ -487,13 +483,11 @@ Expr* Parser::call()
     {
         if (match(LEFT_PAREN))
             expr = finishCall(expr);
-        /*
         else if (match(DOT))
         {
             Token name = consume(IDENTIFIER, "Expect property name after '.'.");
             expr = new Get(expr, name);
         }
-        */
         else
             break;
     }
@@ -510,7 +504,6 @@ Expr* Parser::primary()
     if(match(NUMBER, STRING))
         return new Literal(previous().literal);
 
-    /*
     if (match(SUPER))
     {
         Token keyword = previous();
@@ -520,7 +513,6 @@ Expr* Parser::primary()
     }
 
     if (match(THIS)) return new This(previous());
-    */
 
     if(match(IDENTIFIER))
         return new Variable(previous());
