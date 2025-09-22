@@ -6,9 +6,10 @@
 #include <cctype>
 #include <string>
 
-Scanner::Scanner(std::string& source)
+Scanner::Scanner(std::string& source, std::string& fileName)
 {
 	this->source = source;
+    this->fileName = fileName;
 	keywords["and"] = AND;
     keywords["break"] = BREAK;
 	keywords["class"] = CLASS;
@@ -44,7 +45,7 @@ std::vector<Token> Scanner::scanTokens()
         }
 	}
 
-	tokens.push_back(Token(eof, "", Object(NULL), line));
+	tokens.push_back(Token(eof, "", Object(NULL), line, column, fileName));
 	return tokens;
 }
 
@@ -87,12 +88,14 @@ void Scanner::addToken(TokenType type)
 void Scanner::addToken(TokenType type, Object literal)
 {
 	std::string text = source.substr(start, current - start);
-	tokens.push_back(Token(type, text, literal, line));
+	tokens.push_back(Token(type, text, literal, line, column, fileName));
 }
 
 void Scanner::scanToken()
 {
 	char c = advance();
+    column++;
+
 	switch (c)
 	{
 		case '(': addToken(LEFT_PAREN); break;
@@ -151,7 +154,7 @@ void Scanner::scanToken()
 
 				if (count != 0)
 				{
-					throw ScanError(line, "Unterminated comment block.");
+					throw ScanError(line, column, fileName, "Unterminated comment block.");
 				}
 			}
 
@@ -167,6 +170,7 @@ void Scanner::scanToken()
 
 		case '\n':
 			line++;
+            column = 0;
 			break;
 
 		case '"': string(); break;
@@ -177,7 +181,7 @@ void Scanner::scanToken()
 			else if (isalpha(c) || c == '_')
                 identifier();
 			else
-				throw ScanError(line, "Unexpected character.");
+				throw ScanError(line, column, fileName, "Unexpected character.");
 			break;
 	}
 }
@@ -191,6 +195,7 @@ void Scanner::identifier()
 	if (keywords.find(text) != keywords.end())
 		type = keywords[text];
 	addToken(type);
+    column += tokens.back().lexeme.size() - 1;
 }
 
 void Scanner::number()
@@ -206,24 +211,27 @@ void Scanner::number()
 	}
 	Object num(std::stod(source.substr(start, current - start + 1)));
 	addToken(NUMBER, num);
+    column += tokens.back().lexeme.size() - 1;
 }
 
 void Scanner::string()
 {
 	while ((peek() != '"') && !isAtEnd())
 	{
-		if (peek() == '\n') line++;
+		if (peek() == '\n')
+        {
+            line++;
+            column = 0;
+        }
 		advance();
 	}
 	if (isAtEnd())
-	{
-		throw ScanError(line, "Unterminated string.");
-		return;
-	}
+		throw ScanError(line, column, fileName, "Unterminated string.");
 	// The closing ".
 	advance();
 
 	// Trim the surrounding quotes.
 	std::string value = source.substr(start + 1, (current - 1) - (start + 1));
 	addToken(STRING, Object(value));
+    column += tokens.back().lexeme.size() - 1;
 }

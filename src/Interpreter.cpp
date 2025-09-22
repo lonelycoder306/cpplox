@@ -455,7 +455,7 @@ Object Interpreter::visitSuperExpr(Super* expr)
 {
     int distance = locals[expr];
     LoxClass superclass = class(environment->getAt(distance, expr->keyword));
-    Token dummyToken = Token(THIS, "this", Object("this"), 0);
+    Token dummyToken = Token(THIS, "this", Object("this"), 0, 0, "");
 
     LoxInstance* object = instance(environment->getAt(distance - 1, dummyToken));
 

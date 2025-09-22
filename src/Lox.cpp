@@ -26,7 +26,7 @@ void Lox::runFile(char* path)
     }
 
 	std::string source((std::istreambuf_iterator<char>(fileIn)), std::istreambuf_iterator<char>());
-	run(source);
+	run(source, path);
 
 	// Indicate an error in the exit code.
 	if (hadError) exit(65);
@@ -64,9 +64,9 @@ void Lox::runPrompt()
 	}
 }
 
-void Lox::run(std::string& source)
+void Lox::run(std::string& source, std::string fileName)
 {	
-	Scanner scanner(source);
+	Scanner scanner(source, fileName);
 	std::vector<Token> tokens = scanner.scanTokens();
 
     Parser parser(tokens);
@@ -95,12 +95,34 @@ void Lox::error(BaseError& exception)
 void Lox::report(BaseError& error, std::string where)
 {
     int line = error.type == SCAN ? error.line : error.token.line;
+    int column = error.type == SCAN ? error.column : error.token.column;
     std::string message = error.message;
+    std::string lexerFile = error.type == SCAN ? error.fileName : "";
 
-    std::cerr << error.name + " error" + where << " [line " << line << "]: " <<
-        message << '\n';
+    std::cerr << error.name;
 
-	if (error.type == RUNTIME)
+    int lexemeLen = 1;
+    if (lexerFile == "")
+        lexemeLen = error.token.lexeme.size();
+    
+    std::string file;
+    if (lexerFile != "") file = lexerFile;
+    else if (error.token.fileName != "") file = error.token.fileName;
+    else
+        file = "_REPL_";
+    
+    std::string fileText = file == "_REPL_" ? "" : "\"" + file + "\", ";
+
+    if (lexemeLen == 0)
+        std::cerr << " error" + where + " [" + fileText + "line " << line << "]: " + message + "\n";
+    else if (lexemeLen == 1)
+        std::cerr << " error" + where + " [" + fileText + "line " 
+        << line << ", " << column << "]: " + message + "\n";
+    else
+        std::cerr << " error" + where + " [" + fileText + "line " 
+        << line << ", " << column << "-" << column + lexemeLen - 1 << "]: " + message + "\n";
+
+    if (error.type == RUNTIME)
 		hadRuntimeError = true;
 	else
 		hadError = true;

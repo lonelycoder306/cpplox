@@ -10,7 +10,7 @@ class Lox
 {
 	public:
 		Lox() = default;
-		static void run(std::string& source);
+		static void run(std::string& source, std::string fileName = "_REPL_");
 		static void runFile(char *path);
 		static void runPrompt();
         static void error(BaseError& exception);

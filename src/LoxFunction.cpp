@@ -41,7 +41,7 @@ Object LoxFunction::call(Interpreter interpreter, std::vector<Object> arguments)
     }
 
     //Edit to match my getAt code.
-    Token dummyToken = Token(THIS, "this", Object(nullptr), 0);
+    Token dummyToken = Token(THIS, "this", Object(nullptr), 0, 0, "");
 
     try
     {

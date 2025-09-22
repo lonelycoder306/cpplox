@@ -15,8 +15,10 @@ enum ErrorType
 class BaseError : public std::exception
 {
 	public:
-		int line;
-		Token token;
+        int line;
+        Token token;
+        int column;
+        std::string fileName;
 		std::string message;
         std::string name;
         ErrorType type;
@@ -29,7 +31,7 @@ class BaseError : public std::exception
 class ScanError : public BaseError
 {
 	public:
-		ScanError(int line, std::string message);
+		ScanError(int line, int column, std::string file, std::string message);
 };
 
 class ParseError : public BaseError

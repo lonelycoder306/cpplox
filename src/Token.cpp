@@ -3,12 +3,15 @@
 #include "../include/TokenType.h"
 #include <string>
 
-Token::Token(TokenType type, std::string lexeme, Object literal, int line)
+Token::Token(TokenType type, std::string lexeme, Object literal, int line,
+             int column, std::string fileName)
 {
 	this->type = type;
 	this->lexeme = lexeme;
 	this->literal = literal;
 	this->line = line;
+    this->column = column;
+    this->fileName = fileName;
 }
 
 bool Token::operator==(Token& other)

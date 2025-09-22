@@ -23,11 +23,13 @@ void BaseError::show()
 }
 
 // ScanError.
-ScanError::ScanError(int line, std::string message) :
+ScanError::ScanError(int line, int column, std::string file, std::string message) :
     BaseError(line, message)
 {
     this->name = "Scan";
     this->type = SCAN;
+    this->column = column;
+    this->fileName = file;
 }
 
 // ParseError.
