@@ -10,7 +10,9 @@ Scanner::Scanner(std::string& source)
 {
 	this->source = source;
 	keywords["and"] = AND;
+    keywords["break"] = BREAK;
 	keywords["class"] = CLASS;
+    keywords["continue"] = CONTINUE;
 	keywords["else"] = ELSE;
 	keywords["false"] = FALSE;
 	keywords["for"] = FOR;
@@ -25,8 +27,6 @@ Scanner::Scanner(std::string& source)
 	keywords["true"] = TRUE;
 	keywords["var"] = VAR;
 	keywords["while"] = WHILE;
-	keywords["break"] = BREAK;
-	keywords["continue"] = CONTINUE;
 }
 
 std::vector<Token> Scanner::scanTokens()
@@ -172,8 +172,10 @@ void Scanner::scanToken()
 		case '"': string(); break;
 
 		default:
-			if (isdigit(c)) number();
-			else if (isalpha(c) || c == '_') identifier();
+			if (isdigit(c))
+                number();
+			else if (isalpha(c) || c == '_')
+                identifier();
 			else
 				throw ScanError(line, "Unexpected character.");
 			break;
