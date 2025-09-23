@@ -232,7 +232,8 @@ void Interpreter::visitReturnStmt(Return* stmt)
 void Interpreter::visitVarStmt(Var* stmt)
 {
     // Initialize to an array if no initializer provided.
-    // Easy to check for later to determine if the variable is uninitialized in the user's code.
+    // Easy to check for later to determine if the variable 
+    // is uninitialized in the user's code.
     Object value(std::vector<int>(0));
     if (stmt->initializer != nullptr)
         value = evaluate(stmt->initializer);
