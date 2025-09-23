@@ -69,6 +69,8 @@ void Lox::run(std::string& source, std::string fileName)
 	Scanner scanner(source, fileName);
 	std::vector<Token> tokens = scanner.scanTokens();
 
+    if (hadError) return;
+
     Parser parser(tokens);
     vpS statements = parser.parse();
 
