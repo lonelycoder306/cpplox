@@ -7,6 +7,8 @@
 #include <typeinfo>
 #include <vector>
 
+#define FIX_DEC false
+
 Environment::Environment()
 {
     this->enclosing = nullptr;
@@ -40,9 +42,11 @@ Object Environment::get(Token name)
 }
 
 void Environment::assign(Token name, Object value)
-{
+{    
     if (values.contains(name.lexeme))
     {
+        if (varAccess[name.lexeme] == FIX_DEC)
+            throw RuntimeError(name, "Fixed variable " + name.lexeme + " cannot be re-assigned.");
         values[name.lexeme] = value;
         return;
     }
@@ -56,9 +60,10 @@ void Environment::assign(Token name, Object value)
     throw RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
 }
 
-void Environment::define(std::string name, Object value)
+void Environment::define(std::string name, Object value, bool access)
 {
     values[name] = value;
+    varAccess[name] = access;
 }
 
 Environment* Environment::ancestor(int distance)

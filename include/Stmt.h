@@ -122,8 +122,9 @@ class Var : public Stmt, public Declaration
     public:
         Token name;
         Expr* initializer;
+        bool access;
 
-        Var(Token name, Expr* initializer);
+        Var(Token name, Expr* initializer, bool access);
         void accept(Visitor& visitor) override;
         bool operator==(Stmt& other) override;
 };

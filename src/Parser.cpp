@@ -10,6 +10,9 @@
 #include <string>
 #include <vector>
 
+#define VAR_DEC true
+#define FIX_DEC false
+
 // Public methods.
 Parser::Parser(vT tokens)
 {
@@ -39,7 +42,8 @@ Stmt* Parser::declaration()
             // Signal that the function is an unassigned lambda (so interpreter does nothing with it).
             return function("");
         }
-        if (match(VAR)) return varDeclaration();
+        if (match(VAR)) return varDeclaration(VAR_DEC);
+        if (match(FIX)) return varDeclaration(FIX_DEC);
 
         return statement();
     }
@@ -114,7 +118,7 @@ Stmt* Parser::forStatement()
     if (match(SEMICOLON))
         initializer = nullptr;
     else if (match(VAR))
-        initializer = varDeclaration();
+        initializer = varDeclaration(VAR_DEC);
     else
         initializer = expressionStatement();
 
@@ -187,7 +191,7 @@ Stmt* Parser::returnStatement()
     return new Return(keyword, value);
 }
 
-Stmt* Parser::varDeclaration()
+Stmt* Parser::varDeclaration(bool access)
 {
     Token name = consume(IDENTIFIER, "Expect variable name.");
 
@@ -196,7 +200,7 @@ Stmt* Parser::varDeclaration()
         initializer = expression();
 
     consume(SEMICOLON, "Expect ';' after variable declaration.");
-    return new Var(name, initializer);
+    return new Var(name, initializer, access);
 }
 
 Stmt* Parser::whileStatement()

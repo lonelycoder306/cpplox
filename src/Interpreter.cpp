@@ -28,6 +28,9 @@
 #define instance(obj) std::any_cast<LoxInstance *>(obj.value)
 #define classinst(obj) std::any_cast<LoxClass *>(obj.value)
 
+#define VAR_DEC true
+#define FIX_DEC false
+
 // General methods.
 
 void Interpreter::interpret(vpS statements)
@@ -134,12 +137,12 @@ void Interpreter::visitClassStmt(Class* stmt)
                         "Superclass must be a class");
     }
 
-    environment->define(stmt->name.lexeme, Object(nullptr));
+    environment->define(stmt->name.lexeme, Object(nullptr), VAR_DEC);
 
     if (stmt->superclass != nullptr)
     {
         environment = new Environment(environment);
-        environment->define("super", superclass);
+        environment->define("super", superclass, VAR_DEC);
     }
 
     LoxClass* superclassPtr = nullptr;
@@ -187,9 +190,7 @@ void Interpreter::visitExpressionStmt(Expression* stmt)
     }
     else if (!(dynamic_cast<Assign *>(stmt->expression)) &&
         !(dynamic_cast<Set *>(stmt->expression)))
-    {
         visitPrintStmt(new Print(stmt->expression));
-    }
     else
         evaluate(stmt->expression); // Only evaluate for assignment statements.
 }
@@ -201,7 +202,7 @@ void Interpreter::visitFunctionStmt(Function* stmt)
     if (stmt->name.line != 0)
     {
         LoxFunction function(*stmt, environment, false);
-        environment->define(stmt->name.lexeme, Object(function));
+        environment->define(stmt->name.lexeme, Object(function), VAR_DEC);
     }
 }
 
@@ -236,7 +237,7 @@ void Interpreter::visitVarStmt(Var* stmt)
     if (stmt->initializer != nullptr)
         value = evaluate(stmt->initializer);
 
-    environment->define(stmt->name.lexeme, value);
+    environment->define(stmt->name.lexeme, value, stmt->access);
 }
 
 void Interpreter::visitWhileStmt(While* stmt)

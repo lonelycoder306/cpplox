@@ -16,6 +16,7 @@ Scanner::Scanner(std::string& source, std::string& fileName)
     keywords["continue"] = CONTINUE;
 	keywords["else"] = ELSE;
 	keywords["false"] = FALSE;
+	keywords["fix"] = FIX;
 	keywords["for"] = FOR;
 	keywords["fun"] = FUN;
 	keywords["if"] = IF;

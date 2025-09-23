@@ -205,10 +205,11 @@ bool Return::operator==(Stmt& other)
 }
 
 // Var.
-Var::Var(Token name, Expr* initializer)
+Var::Var(Token name, Expr* initializer, bool access)
 {
     this->name = name;
     this->initializer = initializer;
+    this->access = access;
 }
 
 void Var::accept(Visitor& visitor)
@@ -221,7 +222,8 @@ bool Var::operator==(Stmt& other)
     auto check = dynamic_cast<Var *>(&other);
     if (!check) return false;
     return ((this->name == check->name) &&
-            (*(this->initializer) == *(check->initializer)));
+            (*(this->initializer) == *(check->initializer)) &&
+            (this->access == check->access));
 }
 
 // While.

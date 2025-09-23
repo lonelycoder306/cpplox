@@ -9,6 +9,9 @@
 #include <string>
 #include <vector>
 
+#define VAR_DEC true
+#define FIX_DEC false
+
 LoxFunction::LoxFunction(Function declaration, Environment closure, bool isInitializer) :
     declaration(declaration)
 {
@@ -19,14 +22,14 @@ LoxFunction::LoxFunction(Function declaration, Environment closure, bool isIniti
 LoxFunction LoxFunction::bind(LoxInstance* instance)
 {
     Environment environment = new Environment(closure);
-    environment.define("this", Object(instance));
+    environment.define("this", Object(instance), FIX_DEC);
     return LoxFunction(declaration, environment, isInitializer);
 }
 
 LoxFunction LoxFunction::bind(ClassInstance* instance)
 {
     Environment environment = new Environment(closure);
-    environment.define("this", Object(instance));
+    environment.define("this", Object(instance), FIX_DEC);
     return LoxFunction(declaration, environment, isInitializer);
 }
 
@@ -37,7 +40,7 @@ Object LoxFunction::call(Interpreter interpreter, std::vector<Object> arguments)
     {
         vT params = *declaration.params;
         for (int i = 0; i < (int) declaration.params->size(); i++)
-            environment.define(params[i].lexeme, arguments[i]);
+            environment.define(params[i].lexeme, arguments[i], VAR_DEC);
     }
 
     //Edit to match my getAt code.

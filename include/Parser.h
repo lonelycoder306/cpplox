@@ -27,7 +27,7 @@ class Parser
         Stmt* ifStatement();
         Stmt* printStatement();
         Stmt* returnStatement();
-        Stmt* varDeclaration();
+        Stmt* varDeclaration(bool access);
         Stmt* whileStatement();
         Stmt* expressionStatement();
         Stmt* function(std::string kind);
