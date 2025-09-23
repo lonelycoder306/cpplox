@@ -198,6 +198,8 @@ Stmt* Parser::varDeclaration(bool access)
     Expr* initializer = nullptr;
     if (match(EQUAL))
         initializer = expression();
+    else if (access == FIX_DEC)
+        throw ParseError(peek(), "Must provide initializer to fixed variable.");
 
     consume(SEMICOLON, "Expect ';' after variable declaration.");
     return new Var(name, initializer, access);
