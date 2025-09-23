@@ -178,9 +178,14 @@ void Interpreter::visitClassStmt(Class* stmt)
 
 void Interpreter::visitExpressionStmt(Expression* stmt)
 {
-    // Print out the return value of any expression statement (except assignments and function calls).
-    if (!(dynamic_cast<Assign *>(stmt->expression)) &&
-        !(dynamic_cast<Call *>(stmt->expression)) &&
+    // Print out the return value of any expression statement (except assignments).
+    if (dynamic_cast<Call*>(stmt->expression))
+    {
+        Object value = evaluate(stmt->expression);
+        if (type(value) != NONE)
+            std::cout << stringify(value) << '\n';
+    }
+    else if (!(dynamic_cast<Assign *>(stmt->expression)) &&
         !(dynamic_cast<Set *>(stmt->expression)))
     {
         visitPrintStmt(new Print(stmt->expression));

@@ -24,6 +24,8 @@ Type type(std::any value)
         return LOX_INST;
     if (value.type() == typeid(ClassInstance *))
         return CLASS_INST;
+	if (value.type() == typeid(std::vector<int>))
+		return NONE;
     if (value.type() == typeid(std::nullptr_t))
 		return NONE;
 	return INVALID;
