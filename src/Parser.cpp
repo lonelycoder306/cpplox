@@ -439,7 +439,7 @@ Expr* Parser::factor()
 {
     Expr* expr = unary();
 
-    while(match(SLASH, STAR))
+    while(match(SLASH, STAR, MOD))
     {
         Token bOperator = previous();
         Expr* right = unary();
@@ -458,7 +458,21 @@ Expr* Parser::unary()
         return new Unary(uOperator, right);
     }
 
-    return call();
+    return exponent();
+}
+
+Expr* Parser::exponent()
+{
+    Expr* expr = call();
+
+    while (match(POWER))
+    {
+        Token bOperator = previous();
+        Expr* right = exponent();
+        expr = new Binary(expr, bOperator, right);
+    }
+
+    return expr;
 }
 
 Expr* Parser::finishCall(Expr* callee)

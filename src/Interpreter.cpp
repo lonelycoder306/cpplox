@@ -14,6 +14,7 @@
 #include "../include/Stmt.h"
 #include "../include/Types.h"
 #include <any>
+#include <cmath>
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -332,6 +333,22 @@ Object Interpreter::visitBinaryExpr(Binary* expr)
         case STAR:
             checkNumberOperands(expr->bOperator, left, right);
             return Object(double(left) * double(right));
+        case MOD:
+        {
+            checkNumberOperands(expr->bOperator, left, right);
+            if (double(right) == 0)
+                throw RuntimeError(expr->bOperator, "Cannot compute value mod 0.");
+            double doubleLeft = double(left);
+            double doubleRight = double(right);
+            int intLeft = (int) doubleLeft;
+            int intRight = (int) doubleRight;
+            if (((doubleLeft - intLeft) != 0) or ((doubleRight - intRight) != 0))
+                throw RuntimeError(expr->bOperator, "Cannot compute modulus for non-integers.");
+            return Object((double)(intLeft % intRight));
+        }
+        case POWER:
+            checkNumberOperands(expr->bOperator, left, right);
+            return Object(pow(double(left), double(right)));
         default:
             return Object(nullptr);
     }

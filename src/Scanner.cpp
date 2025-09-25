@@ -111,6 +111,8 @@ void Scanner::scanToken()
 		case '*': addToken(STAR); break;
 		case '?': addToken(Q_MARK); break;
 		case ':': addToken(COLON); break;
+        case '^': addToken(POWER); break;
+        case '%': addToken(MOD); break;
 
 		case '!':
 			addToken(match('=') ? BANG_EQUAL : BANG);

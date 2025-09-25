@@ -28,10 +28,10 @@ enum TokenType {
     // Added for ternary operator.
     Q_MARK, COLON,
 
-    FIX
+    FIX, MOD, POWER
 };
 
-static std::array<std::string, 44> types = {
+static std::array<std::string, 46> types = {
     "LEFT_PAREN", "RIGHT_PAREN", "LEFT_BRACE", "RIGHT_BRACE",
     "COMMA", "DOT", "MINUS", "PLUS", "SEMICOLON", "SLASH", "STAR",
 
@@ -49,5 +49,5 @@ static std::array<std::string, 44> types = {
 
     "BREAK", "CONTINUE",
 
-    "Q_MARK", "COLON", "FIX"
+    "Q_MARK", "COLON", "FIX", "MOD", "POWER"
 };

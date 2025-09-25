@@ -47,6 +47,7 @@ class Parser
         Expr* term();
         Expr* factor();
         Expr* unary();
+        Expr* exponent();
         Expr* finishCall(Expr* callee);
         Expr* call();
         Expr* primary();
