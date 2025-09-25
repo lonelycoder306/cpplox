@@ -181,7 +181,6 @@ void Interpreter::visitClassStmt(Class* stmt)
 
 void Interpreter::visitExpressionStmt(Expression* stmt)
 {
-    // Print out the return value of any expression statement (except assignments).
     if (dynamic_cast<Call*>(stmt->expression))
     {
         Object value = evaluate(stmt->expression);
@@ -192,7 +191,7 @@ void Interpreter::visitExpressionStmt(Expression* stmt)
         !(dynamic_cast<Set *>(stmt->expression)))
         visitPrintStmt(new Print(stmt->expression));
     else
-        evaluate(stmt->expression); // Only evaluate for assignment statements.
+        evaluate(stmt->expression);
 }
 
 void Interpreter::visitFunctionStmt(Function* stmt)
