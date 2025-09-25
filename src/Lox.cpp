@@ -7,6 +7,7 @@
 #include "../include/Resolver.h"
 #include "../include/Scanner.h"
 #include "../include/Token.h"
+#include <cctype>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -34,8 +35,8 @@ void Lox::runFile(char* path)
 }
 
 void Lox::runPrompt()
-{
-	while (true)
+{  
+    while (true)
 	{
 		std::cout << ">>> ";
 		std::string line;
@@ -59,6 +60,7 @@ void Lox::runPrompt()
         } while ((tempString.size() != 0) && (tempString[tempString.size() - 1] == '\\'));
 		if (line == "") break;
 
+        prepString(line);
 		run(line);
 		hadError = false;
 	}
@@ -82,6 +84,39 @@ void Lox::run(std::string& source, std::string fileName)
     if (hadError) return;
 
     interpreter.interpret(statements);
+}
+
+void Lox::strip(std::string& string, char c)
+{
+    if (c != '\0')
+    {
+        while (string.back() == c)
+            string = string.substr(0, string.size() - 1);
+    }
+    else
+    {
+        while (isspace(string.back()))
+            string = string.substr(0, string.size() - 1);
+    }
+}
+
+void Lox::prepString(std::string& string)
+{
+    // 1. Remove trailing whitespace.
+    // 2. Replace tabs with four spaces.
+    // 3. Remove any possible trailing slashes (\).
+
+    // 1,3.
+    while (isspace(string.back()) || (string.back() == '\\'))
+        string = string.substr(0, string.size() - 1);
+
+    // 2.
+    size_t start = string.find('\t', 0);
+    while (start != std::string::npos)
+    {
+        string.replace(start, 1, "    ");
+        start = string.find('\t', start + 1);
+    }
 }
 
 void Lox::error(BaseError& exception)

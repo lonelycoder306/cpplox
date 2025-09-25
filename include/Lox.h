@@ -20,4 +20,6 @@ class Lox
 		static bool hadRuntimeError;
         static Interpreter interpreter;
         static void report(BaseError& error, std::string where);
+		static void prepString(std::string& string);
+		static void strip(std::string& string, char c = '\0');
 };
