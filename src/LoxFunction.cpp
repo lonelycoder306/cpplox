@@ -2,6 +2,7 @@
 #include "../include/ClassInstance.h"
 #include "../include/Environment.h"
 #include "../include/Error.h"
+#include "../include/Expr.h"
 #include "../include/Interpreter.h"
 #include "../include/LoxInstance.h"
 #include "../include/Object.h"
@@ -33,7 +34,7 @@ LoxFunction LoxFunction::bind(ClassInstance* instance)
     return LoxFunction(declaration, environment, isInitializer);
 }
 
-Object LoxFunction::call(Interpreter interpreter, std::vector<Object> arguments)
+Object LoxFunction::call(Interpreter interpreter, Expr* expr, std::vector<Object> arguments)
 {
     Environment environment = new Environment(closure);
     if (declaration.params != nullptr)

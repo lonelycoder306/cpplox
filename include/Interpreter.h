@@ -40,8 +40,9 @@ class Interpreter : public Visitor
 {
     public:
         Environment globals;
+        Environment builtins;
 
-        Interpreter() = default;
+        Interpreter();
         void interpret(vpS);
         void execute(Stmt*);
         Object evaluate(Expr* expr);
@@ -80,6 +81,9 @@ class Interpreter : public Visitor
         Object visitUnaryExpr(Unary* expr) override;
         Object visitVariableExpr(Variable* expr) override;
 
+        // Helper methods.
+        std::string stringify(Object object); // Public to use in built-in function string().
+
     private:
         Environment* environment = &globals;
         std::map<Expr*, int> locals;
@@ -92,8 +96,8 @@ class Interpreter : public Visitor
         void checkNumberOperands(Token bOperator, Object left, Object right);
         bool isTruthy(Object object);
         bool isEqual(Object a, Object b);
-        std::string stringify(Object object);
         Object plus(Binary* expr, Object left, Object right);
         Object callFunc(Object callee, std::vector<Object> arguments, Call* expr);
+        Object callNative(Object callee, std::vector<Object> arguments, Call* expr);
         Object callClass(Object callee, std::vector<Object> arguments, Call* expr);
 };

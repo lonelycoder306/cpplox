@@ -20,6 +20,6 @@ class LoxClass final : public LoxCallable, public ClassInstance
         bool hasMethod(std::string name);
         LoxFunction findMethod(std::string name);
         std::string toString();
-        Object call(Interpreter interpreter, std::vector<Object> arguments) override;
+        Object call(Interpreter interpreter, Expr* expr, std::vector<Object> arguments) override;
         int arity() override;
 };

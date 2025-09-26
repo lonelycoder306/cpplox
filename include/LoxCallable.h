@@ -1,4 +1,5 @@
 #pragma once
+#include "Expr.h"
 #include "Object.h"
 #include <vector>
 
@@ -10,7 +11,7 @@ class LoxCallable
     public:
         // virtual ~LoxCallable() = 0;
         virtual int arity() = 0;
-        virtual Object call(Interpreter interpreter, std::vector<Object> arguments) = 0;
+        virtual Object call(Interpreter interpreter, Expr* expr, std::vector<Object> arguments) = 0;
 };
 
 /*

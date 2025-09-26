@@ -8,6 +8,7 @@ class Environment
 {
     public:
         Environment* enclosing;
+        std::map<std::string, Object> values;
 
         Environment();
         Environment(Environment* enclosing);
@@ -19,6 +20,5 @@ class Environment
         void assignAt(int distance, Token name, Object value);
 
     private:
-        std::map<std::string, Object> values;
         std::map<std::string, bool> varAccess;
 };

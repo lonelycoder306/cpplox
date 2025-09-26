@@ -1,4 +1,5 @@
 #include "../include/LoxClass.h"
+#include "../include/Expr.h"
 #include "../include/Interpreter.h"
 #include "../include/LoxFunction.h"
 #include "../include/LoxInstance.h"
@@ -37,13 +38,13 @@ std::string LoxClass::toString()
     return "<class " + name + ">";
 }
 
-Object LoxClass::call(Interpreter interpreter, std::vector<Object> arguments)
+Object LoxClass::call(Interpreter interpreter, Expr* expr, std::vector<Object> arguments)
 {
     LoxInstance* ptr = new LoxInstance(*this);
     if (hasMethod("init"))
     {
         LoxFunction initializer = findMethod("init");
-        initializer.bind(ptr).call(interpreter, arguments);
+        initializer.bind(ptr).call(interpreter, expr, arguments);
     }
     return Object(ptr);
 }

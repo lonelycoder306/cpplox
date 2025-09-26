@@ -1,5 +1,6 @@
 #include "../include/Interpreter.h"
 // #include "../include/Cleaner.h"
+#include "../include/BuiltinFunction.h"
 #include "../include/ClassInstance.h"
 #include "../include/Error.h"
 #include "../include/Expr.h"
@@ -25,12 +26,20 @@
 #define bool(obj) std::any_cast<bool>(obj.value)
 #define string(obj) std::any_cast<std::string>(obj.value)
 #define func(obj) std::any_cast<LoxFunction>(obj.value)
+#define native(obj) std::any_cast<BuiltinFunction>(obj.value)
 #define class(obj) std::any_cast<LoxClass>(obj.value)
 #define instance(obj) std::any_cast<LoxInstance *>(obj.value)
 #define classinst(obj) std::any_cast<LoxClass *>(obj.value)
+#define time(obj) std::any_cast<time_t>(obj.value)
 
 #define VAR_DEC true
 #define FIX_DEC false
+
+// Constructor.
+Interpreter::Interpreter()
+{
+    this->builtins = builtinSetup();
+}
 
 // General methods.
 
@@ -357,13 +366,23 @@ Object Interpreter::visitBinaryExpr(Binary* expr)
 Object Interpreter::callFunc(Object callee, std::vector<Object> arguments, Call* expr)
 {
     LoxFunction function = func(callee);
-    //type function = std::any_cast<type>(callee);
     if ((int)arguments.size() != function.arity())
         throw RuntimeError(expr->paren, "Expected " +
             std::to_string(function.arity()) + " arguments but got " +
             std::to_string(arguments.size()) + ".");
 
-    return function.call(*this, arguments);
+    return function.call(*this, expr, arguments);
+}
+
+Object Interpreter::callNative(Object callee, std::vector<Object> arguments, Call* expr)
+{
+    BuiltinFunction function = native(callee);
+    if ((int) arguments.size() != function.arity())
+        throw RuntimeError(expr->paren, "Expected " +
+            std::to_string(function.arity()) + " arguments but got " +
+            std::to_string(arguments.size()) + ".");
+    
+    return function.call(*this, expr, arguments);
 }
 
 Object Interpreter::callClass(Object callee, std::vector<Object> arguments, Call* expr)
@@ -375,7 +394,7 @@ Object Interpreter::callClass(Object callee, std::vector<Object> arguments, Call
             std::to_string(klass.arity()) + " arguments but got " +
             std::to_string(arguments.size()) + ".");
 
-    return klass.call(*this, arguments);
+    return klass.call(*this, expr, arguments);
 }
 
 Object Interpreter::visitCallExpr(Call* expr)
@@ -387,7 +406,9 @@ Object Interpreter::visitCallExpr(Call* expr)
         arguments.push_back(evaluate(argument));
 
     // Change to match any child-class of LoxCallable.
-    if (!(type(callee) == LOX_FUNC) && !(type(callee) == LOX_CLASS))
+    if (!(type(callee) == LOX_FUNC) &&
+        !(type(callee) == LOX_CLASS) &&
+        !(type(callee) == LOX_NATIVE))
         throw RuntimeError(expr->paren, "Can only call functions and classes.");
 
     //#define type LoxCallable<LoxFunction>
@@ -397,6 +418,8 @@ Object Interpreter::visitCallExpr(Call* expr)
         return callFunc(callee, arguments, expr);
     if (type(callee) == LOX_CLASS)
         return callClass(callee, arguments, expr);
+    if (type(callee) == LOX_NATIVE)
+        return callNative(callee, arguments, expr);
     return Object(nullptr); // Unreachable.
 }
 
@@ -417,7 +440,7 @@ Object Interpreter::visitGetExpr(Get* expr)
         Object result = instance(object)->get(expr->name);
         if ((type(result) == LOX_FUNC) && 
             (func(result)).isGetter())
-                result = std::any_cast<LoxFunction>(result).call(*this, {});
+                result = std::any_cast<LoxFunction>(result).call(*this, expr, {});
 
         return result;
     }
@@ -533,8 +556,10 @@ Object Interpreter::lookUpVariable(Token name, Expr *expr)
         int distance = locals[expr];
         return environment->getAt(distance, name);
     }
-    else
+    else if (globals.values.contains(name.lexeme))
         return globals.get(name);
+    else
+        return builtins.get(name);
 }
 
 void Interpreter::checkNumberOperand(Token bOperator, Object operand)
@@ -592,6 +617,7 @@ std::string Interpreter::stringify(Object object)
     if (type(object) == LOX_FUNC) return func(object).toString();
     if (type(object) == LOX_CLASS) return class(object).toString();
     if (type(object) == LOX_INST) return instance(object)->toString();
+    if (type(object) == TIME) return std::to_string(time(object));
 
     return ""; // Random return value.
 }

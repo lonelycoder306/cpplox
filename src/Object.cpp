@@ -27,19 +27,23 @@ std::string Object::printVal()
 std::string Object::printType()
 {
 	if (type(*this) == NUM)
-		return "number";
+		return "<number>";
 	if (type(*this) == BOOL)
-        return "boolean";
+        return "<boolean>";
 	if (type(*this) == STR)
-		return "string";
+		return "<string>";
     if (type(*this) == LOX_FUNC)
-        return "function";
+        return "<function>";
+    if (type(*this) == LOX_NATIVE)
+        return "<builtin function>";
     if (type(*this) == LOX_CLASS)
-        return "class";
+        return "<class>";
     if (type(*this) == LOX_INST)
-        return "class instance";
+        return "<class instance>";
+    if (type(*this) == TIME)
+        return "<time>";
     if (type(*this) == NONE)
-        return "nil";
+        return "<nil>";
     
     return "unknown type";
 }
