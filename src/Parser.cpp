@@ -478,6 +478,8 @@ Expr* Parser::exponent()
 Expr* Parser::finishCall(Expr* callee)
 {
     vpE arguments;
+    Token paren = previous();
+
     if (!check(RIGHT_PAREN))
     {
         do
@@ -490,7 +492,7 @@ Expr* Parser::finishCall(Expr* callee)
         } while (match(COMMA));
     }
 
-    Token paren = consume(RIGHT_PAREN, "Expect ')' after arguments.");
+    consume(RIGHT_PAREN, "Expect ')' after arguments.");
 
     return new Call(callee, paren, arguments);
 }
