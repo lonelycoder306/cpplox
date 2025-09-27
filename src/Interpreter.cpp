@@ -366,7 +366,7 @@ Object Interpreter::visitBinaryExpr(Binary* expr)
 Object Interpreter::callFunc(Object callee, std::vector<Object> arguments, Call* expr)
 {
     LoxFunction function = func(callee);
-    if ((int)arguments.size() != function.arity())
+    if ((int) arguments.size() != function.arity())
         throw RuntimeError(expr->paren, "Expected " +
             std::to_string(function.arity()) + " arguments but got " +
             std::to_string(arguments.size()) + ".");
@@ -389,7 +389,7 @@ Object Interpreter::callClass(Object callee, std::vector<Object> arguments, Call
 {
     LoxClass klass = class(callee);
     //type function = std::any_cast<type>(callee);
-    if ((int)arguments.size() != klass.arity())
+    if ((int) arguments.size() != klass.arity())
         throw RuntimeError(expr->paren, "Expected " +
             std::to_string(klass.arity()) + " arguments but got " +
             std::to_string(arguments.size()) + ".");
