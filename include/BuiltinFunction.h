@@ -14,8 +14,8 @@ class BuiltinFunction : public LoxCallable
 {
     public:
         BuiltinFunction(std::string mode);
-        Object call(Interpreter interpreter, Expr* expr, std::vector<Object> arguments);
-        int arity();
+        Object call(Interpreter interpreter, Expr* expr, std::vector<Object> arguments) override;
+        int arity() override;
         std::string toString();
     
     private:
