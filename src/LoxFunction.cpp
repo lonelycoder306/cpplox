@@ -36,6 +36,8 @@ LoxFunction LoxFunction::bind(ClassInstance* instance)
 
 Object LoxFunction::call(Interpreter interpreter, Expr* expr, std::vector<Object> arguments)
 {
+    (void) expr; // To silence error.
+    
     Environment environment = new Environment(closure);
     if (declaration.params != nullptr)
     {

@@ -26,16 +26,19 @@ BuiltinFunction::BuiltinFunction(std::string mode)
 
 Object BuiltinFunction::call(Interpreter interpreter, Expr* expr, std::vector<Object> arguments)
 {
+    (void) expr; // To silence error.
+    
     if (mode == "clock")
         return b_clock();
     if (mode == "type")
-        return b_type(interpreter, arguments[0]);
+        return b_type(arguments[0]);
     if (mode == "string")
         return b_string(interpreter, arguments[0]);
     if (mode == "number")
         return b_number(dynamic_cast<Call *>(expr), arguments[0]);
     if (mode == "length")
         return b_length(dynamic_cast<Call *>(expr), arguments[0]);
+    return Object(nullptr); // Unreachable.
 }
 
 Object BuiltinFunction::b_clock()
@@ -43,7 +46,7 @@ Object BuiltinFunction::b_clock()
     return Object(time(0));
 }
 
-Object BuiltinFunction::b_type(Interpreter interpreter, Object object)
+Object BuiltinFunction::b_type(Object object)
 {
     return Object(object.printType());
 }
@@ -56,7 +59,8 @@ Object BuiltinFunction::b_string(Interpreter interpreter, Object object)
 Object BuiltinFunction::b_number(Call* expr, Object object)
 {
     Token callee;
-    if (Variable *check; check = dynamic_cast<Variable *>(expr->callee))
+    Variable* check;
+    if ((check = dynamic_cast<Variable *>(expr->callee)))
         callee = check->name;
     // Check for access expression.
 
@@ -76,7 +80,8 @@ Object BuiltinFunction::b_number(Call* expr, Object object)
 Object BuiltinFunction::b_length(Call* expr, Object object)
 {
     Token callee;
-    if (Variable *check; check = dynamic_cast<Variable *>(expr->callee))
+    Variable* check;
+    if ((check = dynamic_cast<Variable *>(expr->callee)))
         callee = check->name;
     // Check for access expression.
 
@@ -99,6 +104,7 @@ int BuiltinFunction::arity()
         return 1;
     if (mode == "length")
         return 1;
+    return -1; // Unreachable.
 }
 
 std::string BuiltinFunction::toString()
