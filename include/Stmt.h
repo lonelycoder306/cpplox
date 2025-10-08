@@ -1,4 +1,5 @@
 #pragma once
+#include "Cleaner.h"
 #include "Nodes.h"
 #include "Token.h"
 #include "Visitor.h"
@@ -11,6 +12,7 @@ class Stmt
         Stmt();
         virtual ~Stmt() = 0;
         virtual void accept(Visitor& visitor) = 0;
+        virtual void remove(Cleaner& cleaner, Stmt* &stmt) = 0;
         virtual bool operator==(Stmt& other) = 0;
 };
 
@@ -24,6 +26,7 @@ class Break : public Stmt
 
         Break(Token breakCMD, std::string loopType);
         void accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Stmt* &stmt) override;
         bool operator==(Stmt& other) override;
 };
 
@@ -34,6 +37,7 @@ class Block : public Stmt
 
         Block(vpS statements);
         void accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Stmt* &stmt) override;
         bool operator==(Stmt& other) override;
 };
 
@@ -47,6 +51,7 @@ class Class : public Stmt
 
         Class(Token name, Expr* superclass, vpS methods, vpS classMethods);
         void accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Stmt* &stmt) override;
         bool operator==(Stmt& other) override;
 };
 
@@ -58,6 +63,7 @@ class Continue : public Stmt
 
         Continue(Token continueCMD, std::string loopType);
         void accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Stmt* &stmt) override;
         bool operator==(Stmt& other) override;
 };
 
@@ -71,6 +77,7 @@ class Function : public Stmt, public Declaration
         Function() = default;
         Function(Token name, vT* params, vpS body);
         void accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Stmt* &stmt) override;
         bool operator==(Stmt& other) override;
 };
 
@@ -83,6 +90,7 @@ class If : public Stmt
 
         If(Expr* condition, Stmt* thenBranch, Stmt* elseBranch);
         void accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Stmt* &stmt) override;
         bool operator==(Stmt& other) override;
 };
 
@@ -93,6 +101,7 @@ class Expression : public Stmt
 
         Expression(Expr* expression);
         void accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Stmt* &stmt) override;
         bool operator==(Stmt& other) override;
 };
 
@@ -103,6 +112,7 @@ class Print : public Stmt
 
         Print(Expr* expression);
         void accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Stmt* &stmt) override;
         bool operator==(Stmt& other) override;
 };
 
@@ -114,6 +124,7 @@ class Return : public Stmt
 
         Return(Token keyword, Expr* value);
         void accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Stmt* &stmt) override;
         bool operator==(Stmt& other) override;
 };
 
@@ -126,6 +137,7 @@ class Var : public Stmt, public Declaration
 
         Var(Token name, Expr* initializer, bool access);
         void accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Stmt* &stmt) override;
         bool operator==(Stmt& other) override;
 };
 
@@ -137,5 +149,6 @@ class While : public Stmt
 
         While(Expr* condition, Stmt* body);
         void accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Stmt* &stmt) override;
         bool operator==(Stmt& other) override;
 };

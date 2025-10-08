@@ -1,4 +1,5 @@
 #pragma once
+#include "Cleaner.h"
 #include "Nodes.h"
 #include "Object.h"
 #include "Token.h"
@@ -11,6 +12,7 @@ class Expr
         Expr();
         virtual ~Expr();
         virtual Object accept(Visitor& visitor) = 0;
+        virtual void remove(Cleaner& cleaner, Expr* &expr) = 0;
         virtual bool operator==(Expr& other) = 0;
 };
 
@@ -22,6 +24,7 @@ class Assign : public Expr
 
         Assign(Token name, Expr* value);
         Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
         bool operator==(Expr& other) override;
 };
 
@@ -34,6 +37,7 @@ class Binary : public Expr
 
         Binary(Expr* left, Token bOperator, Expr* right);
         Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
         bool operator==(Expr& other) override;
 };
 
@@ -46,6 +50,7 @@ class Call : public Expr
 
         Call(Expr* callee, Token paren, vpE arguments);
         Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
         bool operator==(Expr& other) override;
 };
 
@@ -56,6 +61,7 @@ class Comma : public Expr
 
         Comma(vpE expressions);
         Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
         bool operator==(Expr& other) override;
 };
 
@@ -67,6 +73,7 @@ class Get : public Expr
 
         Get(Expr* object, Token name);
         Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
         bool operator==(Expr& other) override;
 };
 
@@ -77,6 +84,7 @@ class Grouping : public Expr
 
         Grouping(Expr* expression);
         Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
         bool operator==(Expr& other) override;
 };
 
@@ -88,6 +96,7 @@ class Lambda : public Expr
 
         Lambda(vT params, vpS body);
         Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
         bool operator==(Expr& other) override;
 };
 
@@ -98,6 +107,7 @@ class Literal : public Expr
 
         Literal(Object value);
         Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
         bool operator==(Expr& other) override;
 };
 
@@ -110,6 +120,7 @@ class Logical : public Expr
 
         Logical(Expr* left, Token lOperator, Expr* right);
         Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
         bool operator==(Expr& other) override;
 };
 
@@ -122,6 +133,7 @@ class Set : public Expr
 
         Set(Expr* object, Token name, Expr* value);
         Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
         bool operator==(Expr& other) override;
 };
 
@@ -133,6 +145,7 @@ class Super : public Expr
 
         Super(Token keyword, Token method);
         Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
         bool operator==(Expr& other) override;
 };
 
@@ -145,6 +158,7 @@ class Ternary : public Expr
 
         Ternary(Expr* condition, Expr* trueBranch, Expr* falseBranch);
         Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
         bool operator==(Expr& other) override;
 };
 
@@ -155,6 +169,7 @@ class This : public Expr
 
         This(Token keyword);
         Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
         bool operator==(Expr& other) override;
 };
 
@@ -166,6 +181,7 @@ class Unary : public Expr
 
         Unary(Token uOperator, Expr* right);
         Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
         bool operator==(Expr& other) override;
 };
 
@@ -176,5 +192,6 @@ class Variable : public Expr
 
         Variable(Token name);
         Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
         bool operator==(Expr& other) override;
 };

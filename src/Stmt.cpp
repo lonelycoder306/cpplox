@@ -22,6 +22,11 @@ void Break::accept(Visitor& visitor)
     visitor.visitBreakStmt(this);
 }
 
+void Break::remove(Cleaner& cleaner, Stmt* &stmt)
+{
+    cleaner.visitBreakStmt(reinterpret_cast<Break *&>(stmt));
+}
+
 bool Break::operator==(Stmt& other)
 {
     auto check = dynamic_cast<Break *>(&other);
@@ -38,6 +43,11 @@ Block::Block(vpS statements)
 void Block::accept(Visitor& visitor)
 {
     visitor.visitBlockStmt(this);
+}
+
+void Block::remove(Cleaner& cleaner, Stmt* &stmt)
+{
+    cleaner.visitBlockStmt(reinterpret_cast<Block *&>(stmt));
 }
 
 bool Block::operator==(Stmt& other)
@@ -59,6 +69,11 @@ Class::Class(Token name, Expr* superclass, vpS methods, vpS classMethods)
 void Class::accept(Visitor& visitor)
 {
     visitor.visitClassStmt(this);
+}
+
+void Class::remove(Cleaner& cleaner, Stmt* &stmt)
+{
+    cleaner.visitClassStmt(reinterpret_cast<Class *&>(stmt));
 }
 
 bool Class::operator==(Stmt& other)
@@ -83,6 +98,11 @@ void Continue::accept(Visitor& visitor)
     visitor.visitContinueStmt(this);
 }
 
+void Continue::remove(Cleaner& cleaner, Stmt* &stmt)
+{
+    cleaner.visitContinueStmt(reinterpret_cast<Continue *&>(stmt));
+}
+
 bool Continue::operator==(Stmt& other)
 {
     auto check = dynamic_cast<Continue *>(&other);
@@ -101,6 +121,11 @@ Function::Function(Token name, vT* params, vpS body)
 void Function::accept(Visitor& visitor)
 {
     visitor.visitFunctionStmt(this);
+}
+
+void Function::remove(Cleaner& cleaner, Stmt* &stmt)
+{
+    cleaner.visitFunctionStmt(reinterpret_cast<Function *&>(stmt));
 }
 
 bool Function::operator==(Stmt& other)
@@ -132,6 +157,11 @@ void If::accept(Visitor& visitor)
     visitor.visitIfStmt(this);
 }
 
+void If::remove(Cleaner& cleaner, Stmt* &stmt)
+{
+    cleaner.visitIfStmt(reinterpret_cast<If *&>(stmt));
+}
+
 bool If::operator==(Stmt& other)
 {
     auto check = dynamic_cast<If *>(&other);
@@ -159,6 +189,11 @@ void Expression::accept(Visitor& visitor)
     visitor.visitExpressionStmt(this);
 }
 
+void Expression::remove(Cleaner& cleaner, Stmt* &stmt)
+{
+    cleaner.visitExpressionStmt(reinterpret_cast<Expression *&>(stmt));
+}
+
 bool Expression::operator==(Stmt& other)
 {
     auto check = dynamic_cast<Expression *>(&other);
@@ -175,6 +210,11 @@ Print::Print(Expr* expression)
 void Print::accept(Visitor& visitor)
 {
     visitor.visitPrintStmt(this);
+}
+
+void Print::remove(Cleaner& cleaner, Stmt* &stmt)
+{
+    cleaner.visitPrintStmt(reinterpret_cast<Print *&>(stmt));
 }
 
 bool Print::operator==(Stmt& other)
@@ -194,6 +234,11 @@ Return::Return(Token keyword, Expr* value)
 void Return::accept(Visitor& visitor)
 {
     visitor.visitReturnStmt(this);
+}
+
+void Return::remove(Cleaner& cleaner, Stmt* &stmt)
+{
+    cleaner.visitReturnStmt(reinterpret_cast<Return *&>(stmt));
 }
 
 bool Return::operator==(Stmt& other)
@@ -217,6 +262,11 @@ void Var::accept(Visitor& visitor)
     visitor.visitVarStmt(this);
 }
 
+void Var::remove(Cleaner& cleaner, Stmt* &stmt)
+{
+    cleaner.visitVarStmt(reinterpret_cast<Var *&>(stmt));
+}
+
 bool Var::operator==(Stmt& other)
 {
     auto check = dynamic_cast<Var *>(&other);
@@ -236,6 +286,11 @@ While::While(Expr* condition, Stmt* body)
 void While::accept(Visitor& visitor)
 {
     visitor.visitWhileStmt(this);
+}
+
+void While::remove(Cleaner& cleaner, Stmt* &stmt)
+{
+    cleaner.visitWhileStmt(reinterpret_cast<While *&>(stmt));
 }
 
 bool While::operator==(Stmt& other)

@@ -1,4 +1,5 @@
 #include "../include/Expr.h"
+#include "../include/Cleaner.h"
 #include "../include/Nodes.h"
 #include "../include/Object.h"
 #include "../include/Overloads.h"
@@ -24,6 +25,11 @@ Object Assign::accept(Visitor& visitor)
     return visitor.visitAssignExpr(this);
 }
 
+void Assign::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitAssignExpr(reinterpret_cast<Assign *&>(expr));
+}
+
 bool Assign::operator==(Expr& other)
 {
     auto check = dynamic_cast<Assign *>(&other);
@@ -44,6 +50,11 @@ Binary::Binary(Expr* left, Token bOperator, Expr* right)
 Object Binary::accept(Visitor& visitor)
 {
     return visitor.visitBinaryExpr(this);
+}
+
+void Binary::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitBinaryExpr(reinterpret_cast<Binary *&>(expr));
 }
 
 bool Binary::operator==(Expr& other)
@@ -69,6 +80,11 @@ Object Call::accept(Visitor& visitor)
     return visitor.visitCallExpr(this);
 }
 
+void Call::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitCallExpr(reinterpret_cast<Call *&>(expr));
+}
+
 bool Call::operator==(Expr& other)
 {
     auto check = dynamic_cast<Call *>(&other);
@@ -87,6 +103,11 @@ Comma::Comma(vpE expressions)
 Object Comma::accept(Visitor& visitor)
 {
     return visitor.visitCommaExpr(this);
+}
+
+void Comma::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitCommaExpr(reinterpret_cast<Comma *&>(expr));
 }
 
 bool Comma::operator==(Expr& other)
@@ -108,6 +129,11 @@ Object Get::accept(Visitor& visitor)
     return visitor.visitGetExpr(this);
 }
 
+void Get::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitGetExpr(reinterpret_cast<Get *&>(expr));
+}
+
 bool Get::operator==(Expr& other)
 {
     auto check = dynamic_cast<Get *>(&other);
@@ -125,6 +151,11 @@ Grouping::Grouping(Expr* expression)
 Object Grouping::accept(Visitor& visitor)
 {
     return visitor.visitGroupingExpr(this);
+}
+
+void Grouping::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitGroupingExpr(reinterpret_cast<Grouping *&>(expr));
 }
 
 bool Grouping::operator==(Expr& other)
@@ -146,6 +177,11 @@ Object Lambda::accept(Visitor& visitor)
     return visitor.visitLambdaExpr(this);
 }
 
+void Lambda::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitLambdaExpr(reinterpret_cast<Lambda *&>(expr));
+}
+
 bool Lambda::operator==(Expr& other)
 {
     auto check = dynamic_cast<Lambda *>(&other);
@@ -163,6 +199,11 @@ Literal::Literal(Object value)
 Object Literal::accept(Visitor& visitor)
 {
     return visitor.visitLiteralExpr(this);
+}
+
+void Literal::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitLiteralExpr(reinterpret_cast<Literal *&>(expr));
 }
 
 bool Literal::operator==(Expr& other)
@@ -185,6 +226,11 @@ Object Logical::accept(Visitor& visitor)
     return visitor.visitLogicalExpr(this);
 }
 
+void Logical::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitLogicalExpr(reinterpret_cast<Logical *&>(expr));
+}
+
 bool Logical::operator==(Expr& other)
 {
     auto check = dynamic_cast<Logical *>(&other);
@@ -202,6 +248,10 @@ Set::Set(Expr* object, Token name, Expr* value)
     this->value = value;
 }
 
+void Set::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitSetExpr(reinterpret_cast<Set *&>(expr));
+}
 
 Object Set::accept(Visitor& visitor)
 {
@@ -230,6 +280,11 @@ Object Super::accept(Visitor& visitor)
     return visitor.visitSuperExpr(this);
 }
 
+void Super::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitSuperExpr(reinterpret_cast<Super *&>(expr));
+}
+
 bool Super::operator==(Expr& other)
 {
     auto check = dynamic_cast<Super *>(&other);
@@ -249,6 +304,11 @@ Ternary::Ternary(Expr* condition, Expr* trueBranch, Expr* falseBranch)
 Object Ternary::accept(Visitor& visitor)
 {
     return visitor.visitTernaryExpr(this);
+}
+
+void Ternary::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitTernaryExpr(reinterpret_cast<Ternary *&>(expr));
 }
 
 bool Ternary::operator==(Expr& other)
@@ -271,6 +331,11 @@ Object This::accept(Visitor& visitor)
     return visitor.visitThisExpr(this);
 }
 
+void This::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitThisExpr(reinterpret_cast<This *&>(expr));
+}
+
 bool This::operator==(Expr& other)
 {
     auto check = dynamic_cast<This *>(&other);
@@ -290,6 +355,11 @@ Object Unary::accept(Visitor& visitor)
     return visitor.visitUnaryExpr(this);
 }
 
+void Unary::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitUnaryExpr(reinterpret_cast<Unary *&>(expr));
+}
+
 bool Unary::operator==(Expr& other)
 {
     auto check = dynamic_cast<Unary *>(&other);
@@ -307,6 +377,11 @@ Variable::Variable(Token name)
 Object Variable::accept(Visitor& visitor)
 {
     return visitor.visitVariableExpr(this);
+}
+
+void Variable::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitVariableExpr(reinterpret_cast<Variable *&>(expr));
 }
 
 bool Variable::operator==(Expr& other)

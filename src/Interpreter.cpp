@@ -1,5 +1,5 @@
 #include "../include/Interpreter.h"
-// #include "../include/Cleaner.h"
+#include "../include/Cleaner.h"
 #include "../include/BuiltinFunction.h"
 #include "../include/ClassInstance.h"
 #include "../include/Error.h"
@@ -50,7 +50,7 @@ void Interpreter::interpret(vpS statements)
         for (Stmt* stmt: statements)
         {
             execute(stmt);
-            // if (Cleaner::cleanable(stmt))
+            // if (cleaner.cleanable(stmt))
             //     cleaner.clean(stmt);
         }
         // cleaner.clean(statements);
@@ -81,7 +81,7 @@ void Interpreter::executeBlock(vpS statements, Environment& environment)
         for (Stmt* stmt: statements)
         {
             execute(stmt);
-            // if (Cleaner::cleanable(stmt))
+            // if (cleaner.cleanable(stmt))
             //     cleaner.clean(stmt);
         }
     }

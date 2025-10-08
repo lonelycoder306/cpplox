@@ -1,5 +1,5 @@
 #pragma once
-// #include "Cleaner.h"
+#include "Cleaner.h"
 #include "Environment.h"
 #include "Expr.h"
 #include "Object.h"
