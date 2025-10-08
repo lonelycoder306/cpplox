@@ -28,8 +28,19 @@ vpS Parser::parse()
 {
     vpS statements;
     while (!isAtEnd())
-        statements.push_back(declaration());
-    
+    {
+        try
+        {
+            statements.push_back(declaration());
+        }
+        catch (ParseError& error)
+        {
+            synchronize();
+            error.show();
+            return {};
+        }
+    }
+
     return statements;
 }
 
@@ -38,26 +49,17 @@ vpS Parser::parse()
 // Statement methods.
 Stmt* Parser::declaration()
 {
-    try
+    if (match(CLASS)) return classDeclaration();
+    if (match(FUN))
     {
-        if (match(CLASS)) return classDeclaration();
-        if (match(FUN))
-        {
-            if (check(IDENTIFIER)) return function("function");
-            // Signal that the function is an unassigned lambda (so interpreter does nothing with it).
-            return function("");
-        }
-        if (match(VAR)) return varDeclaration(VAR_DEC);
-        if (match(FIX)) return varDeclaration(FIX_DEC);
+        if (check(IDENTIFIER)) return function("function");
+        // Signal that the function is an unassigned lambda (so interpreter does nothing with it).
+        return function("");
+    }
+    if (match(VAR)) return varDeclaration(VAR_DEC);
+    if (match(FIX)) return varDeclaration(FIX_DEC);
 
-        return statement();
-    }
-    catch (ParseError& error)
-    {
-        synchronize();
-        error.show();
-        return nullptr;
-    }
+    return statement();
 }
 
 Stmt* Parser::statement()
@@ -141,6 +143,7 @@ Stmt* Parser::fetchStatement()
         this->tokens.insert(this->tokens.begin() + current, 
                                 newTokens.begin(), newTokens.end() - 1);
     }
+
     else if (mode == "File")
     {
         std::ifstream fileIn(name);
@@ -444,7 +447,7 @@ Expr* Parser::equality()
 {
     Expr* expr = comparison();
 
-    while(match(BANG_EQUAL, EQUAL_EQUAL))
+    while (match(BANG_EQUAL, EQUAL_EQUAL))
     {
         Token bOperator = previous();
         Expr* right = comparison();
@@ -458,7 +461,7 @@ Expr* Parser::comparison()
 {
     Expr* expr = term();
 
-    while(match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL))
+    while (match(GREATER, GREATER_EQUAL, LESS, LESS_EQUAL))
     {
         Token bOperator = previous();
         Expr* right = term();
@@ -472,7 +475,7 @@ Expr* Parser::term()
 {
     Expr* expr = factor();
 
-    while(match(MINUS, PLUS))
+    while (match(MINUS, PLUS))
     {
         Token bOperator = previous();
         Expr* right = factor();
@@ -486,7 +489,7 @@ Expr* Parser::factor()
 {
     Expr* expr = unary();
 
-    while(match(SLASH, STAR, MOD))
+    while (match(SLASH, STAR, MOD))
     {
         Token bOperator = previous();
         Expr* right = unary();
@@ -498,7 +501,7 @@ Expr* Parser::factor()
 
 Expr* Parser::unary()
 {
-    if(match(BANG, MINUS))
+    if (match(BANG, MINUS))
     {
         Token uOperator = previous();
         Expr* right = unary();
@@ -566,11 +569,11 @@ Expr* Parser::call()
 
 Expr* Parser::primary()
 {
-    if(match(FALSE)) return new Literal(Object(false));
-    if(match(TRUE)) return new Literal(Object(true));
-    if(match(NIL)) return new Literal(Object(nullptr)); // Temporary.
+    if (match(FALSE)) return new Literal(Object(false));
+    if (match(TRUE)) return new Literal(Object(true));
+    if (match(NIL)) return new Literal(Object(nullptr)); // Temporary.
 
-    if(match(NUMBER, STRING))
+    if (match(NUMBER, STRING))
         return new Literal(previous().literal);
 
     if (match(SUPER))
@@ -583,10 +586,10 @@ Expr* Parser::primary()
 
     if (match(THIS)) return new This(previous());
 
-    if(match(IDENTIFIER))
+    if (match(IDENTIFIER))
         return new Variable(previous());
 
-    if(match(LEFT_PAREN))
+    if (match(LEFT_PAREN))
     {
         Expr* expr = expression();
         consume(RIGHT_PAREN, "Expect ')' after expression.");
@@ -646,7 +649,8 @@ Token Parser::previous()
     return tokens[current - 1];
 }
 
-void Parser::synchronize() {
+void Parser::synchronize()
+{
     advance();
 
     while (!isAtEnd())
