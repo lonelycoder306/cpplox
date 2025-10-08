@@ -17,7 +17,10 @@ Token::Token(TokenType type, std::string lexeme, Object literal, int line,
 bool Token::operator==(Token& other)
 {
     return ((this->type == other.type) &&
-            (this->lexeme == other.lexeme));
+            (this->lexeme == other.lexeme) &&
+            (this->line == other.line) &&
+            (this->column == other.column) &&
+            (this->fileName == other.fileName));
 }
 
 std::string Token::toString()
