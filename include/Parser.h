@@ -23,6 +23,7 @@ class Parser
         Stmt* breakStatement();
         Stmt* classDeclaration();
         Stmt* continueStatement();
+        Stmt* fetchStatement();
         Stmt* forStatement();
         Stmt* ifStatement();
         Stmt* printStatement();

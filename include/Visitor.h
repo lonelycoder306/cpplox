@@ -9,6 +9,7 @@ class Visitor
         virtual void visitBlockStmt(Block* stmt) = 0;
         virtual void visitClassStmt(Class* stmt) = 0;
         virtual void visitContinueStmt(Continue* stmt) = 0;
+        virtual void visitFetchStmt(Fetch* stmt) = 0;
         virtual void visitFunctionStmt(Function* stmt) = 0;
         virtual void visitIfStmt(If* stmt) = 0;
         virtual void visitExpressionStmt(Expression* stmt) = 0;

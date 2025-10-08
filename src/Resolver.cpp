@@ -184,6 +184,11 @@ void Resolver::visitExpressionStmt(Expression* stmt)
     resolve(stmt->expression);
 }
 
+void Resolver::visitFetchStmt(Fetch* stmt)
+{
+    (void) stmt;
+}
+
 void Resolver::visitFunctionStmt(Function* stmt)
 {
     declare(stmt->name);

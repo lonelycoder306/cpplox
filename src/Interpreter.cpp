@@ -204,6 +204,14 @@ void Interpreter::visitExpressionStmt(Expression* stmt)
         evaluate(stmt->expression);
 }
 
+void Interpreter::visitFetchStmt(Fetch* stmt)
+{
+    if (stmt->mode == "Mod")
+    {
+        // ...
+    }
+}
+
 void Interpreter::visitFunctionStmt(Function* stmt)
 {
     // Check that function is not an unassigned lambda (do nothing if it is).

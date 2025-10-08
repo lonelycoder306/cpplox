@@ -56,6 +56,7 @@ class Interpreter : public Visitor
         void visitClassStmt(Class* stmt) override;
         void visitContinueStmt(Continue* stmt) override;
         void visitExpressionStmt(Expression* stmt) override;
+        void visitFetchStmt(Fetch* stmt) override;
         void visitFunctionStmt(Function* stmt) override;
         void visitIfStmt(If* stmt) override;
         void visitPrintStmt(Print* stmt) override;

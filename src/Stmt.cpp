@@ -110,6 +110,31 @@ bool Continue::operator==(Stmt& other)
     return (this->continueCMD == check->continueCMD);
 }
 
+// Fetch.
+Fetch::Fetch(std::string mode, std::string name)
+{
+    this->name = name;
+    this->mode = mode;
+}
+
+void Fetch::accept(Visitor& visitor)
+{
+    visitor.visitFetchStmt(this);
+}
+
+void Fetch::remove(Cleaner& cleaner, Stmt* &stmt)
+{
+    cleaner.visitFetchStmt(reinterpret_cast<Fetch *&>(stmt));
+}
+
+bool Fetch::operator==(Stmt& other)
+{
+    auto check = dynamic_cast<Fetch *>(&other);
+    if (!check) return false;
+    return ((this->mode == check->mode) &&
+            (this->name == check->name));
+}
+
 // Function.
 Function::Function(Token name, vT* params, vpS body)
 {

@@ -13,9 +13,10 @@ class Cleaner
         void visitBlockStmt(Block* &stmt);
         void visitClassStmt(Class* &stmt);
         void visitContinueStmt(Continue* &stmt);
+        void visitExpressionStmt(Expression* &stmt);
+        void visitFetchStmt(Fetch* &stmt);
         void visitFunctionStmt(Function* &stmt);
         void visitIfStmt(If* &stmt);
-        void visitExpressionStmt(Expression* &stmt);
         void visitPrintStmt(Print* &stmt);
         void visitReturnStmt(Return* &stmt);
         void visitVarStmt(Var* &stmt);

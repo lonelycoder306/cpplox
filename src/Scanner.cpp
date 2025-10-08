@@ -29,6 +29,9 @@ Scanner::Scanner(std::string& source, std::string& fileName)
 	keywords["true"] = TRUE;
 	keywords["var"] = VAR;
 	keywords["while"] = WHILE;
+    keywords["GetMod"] = GET;
+    keywords["GetLib"] = GET;
+    keywords["GetFile"] = GET;
 }
 
 std::vector<Token> Scanner::scanTokens()
@@ -83,7 +86,7 @@ char Scanner::advance()
 
 void Scanner::addToken(TokenType type)
 {
-	addToken(type, Object(NULL));
+	addToken(type, Object(nullptr));
 }
 
 void Scanner::addToken(TokenType type, Object literal)

@@ -77,6 +77,18 @@ void Cleaner::visitContinueStmt(Continue* &stmt)
     stmt = nullptr;
 }
 
+void Cleaner::visitExpressionStmt(Expression* &stmt)
+{
+    clean(stmt->expression);
+    delete stmt;
+}
+
+void Cleaner::visitFetchStmt(Fetch* &stmt)
+{
+    delete stmt;
+    stmt = nullptr;
+}
+
 void Cleaner::visitFunctionStmt(Function* &stmt)
 {
     delete stmt->params;
@@ -92,12 +104,6 @@ void Cleaner::visitIfStmt(If* &stmt)
     if (stmt->elseBranch != nullptr) clean(stmt->elseBranch);
     delete stmt;
     stmt = nullptr;
-}
-
-void Cleaner::visitExpressionStmt(Expression* &stmt)
-{
-    clean(stmt->expression);
-    delete stmt;
 }
 
 void Cleaner::visitPrintStmt(Print* &stmt)

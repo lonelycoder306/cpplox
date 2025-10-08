@@ -3,9 +3,11 @@
 #include "../include/Expr.h"
 #include "../include/Lox.h"
 #include "../include/Nodes.h"
+#include "../include/Scanner.h"
 #include "../include/Stmt.h"
 #include "../include/Token.h"
 #include "../include/TokenType.h"
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -60,6 +62,7 @@ Stmt* Parser::statement()
     if (match(BREAK)) return breakStatement();
     if (match(CONTINUE)) return continueStatement();
     if (match(FOR)) return forStatement();
+    if (match(GET)) return fetchStatement();
     if (match(IF)) return ifStatement();
     if (match(PRINT)) return printStatement();
     if (match(RETURN)) return returnStatement();
@@ -108,6 +111,46 @@ Stmt* Parser::continueStatement()
     Token continueToken = previous();
     consume(SEMICOLON, "Expect ';' after 'continue'.");
     return new Continue(continueToken, loopType);
+}
+
+Stmt* Parser::fetchStatement()
+{
+    Token modeToken = previous();
+    std::string mode = modeToken.lexeme;
+    mode = mode.substr(3, mode.length() - 3);
+    Token nameToken = consume(STRING, "Expect name of import.");
+    std::string name = nameToken.lexeme;
+    // Cut off the "".
+    name = name.substr(1, name.length() - 2);
+    consume(SEMICOLON, "Expect ';' after import statement.");
+
+    if (mode == "Lib")
+    {
+        name = "Libraries\\" + name + ".lox";
+        std::ifstream libIn(name);
+        if (libIn.fail())
+            throw ParseError(nameToken, "No such library file.");
+        std::string libFile((std::istreambuf_iterator<char>(libIn)), 
+                                    std::istreambuf_iterator<char>());
+        Scanner tempScanner(libFile, name);
+        vT newTokens = tempScanner.scanTokens();
+        this->tokens.insert(this->tokens.begin() + current, 
+                                newTokens.begin(), newTokens.end() - 1);
+    }
+    else if (mode == "File")
+    {
+        std::ifstream fileIn(name);
+        if (fileIn.fail())
+            throw ParseError(nameToken, "No such Lox file.");
+        std::string loxFile((std::istreambuf_iterator<char>(fileIn)), 
+                                    std::istreambuf_iterator<char>());
+        Scanner tempScanner(loxFile, name);
+        vT newTokens = tempScanner.scanTokens();
+        this->tokens.insert(this->tokens.begin() + current, 
+                                newTokens.begin(), newTokens.end() - 1);
+    }
+
+    return new Fetch(mode, name);
 }
 
 Stmt* Parser::forStatement()

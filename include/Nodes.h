@@ -25,6 +25,7 @@ class Break;
 class Block;
 class Class;
 class Continue;
+class Fetch;
 class Function;
 class If;
 class Expression;

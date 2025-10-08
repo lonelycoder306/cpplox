@@ -1,5 +1,4 @@
 #pragma once
-#include <array>
 #include <string>
 
 enum TokenType {
@@ -28,10 +27,10 @@ enum TokenType {
     // Added for ternary operator.
     Q_MARK, COLON,
 
-    FIX, MOD, POWER
+    FIX, MOD, POWER, GET
 };
 
-static std::array<std::string, 46> types = {
+static std::string types[] = {
     "LEFT_PAREN", "RIGHT_PAREN", "LEFT_BRACE", "RIGHT_BRACE",
     "COMMA", "DOT", "MINUS", "PLUS", "SEMICOLON", "SLASH", "STAR",
 
@@ -49,5 +48,5 @@ static std::array<std::string, 46> types = {
 
     "BREAK", "CONTINUE",
 
-    "Q_MARK", "COLON", "FIX", "MOD", "POWER"
+    "Q_MARK", "COLON", "FIX", "MOD", "POWER", "GET"
 };

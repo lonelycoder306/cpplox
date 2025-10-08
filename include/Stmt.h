@@ -67,6 +67,18 @@ class Continue : public Stmt
         bool operator==(Stmt& other) override;
 };
 
+class Fetch : public Stmt
+{
+    public:
+        std::string mode;
+        std::string name;
+
+        Fetch(std::string mode, std::string name);
+        void accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Stmt*& stmt) override;
+        bool operator==(Stmt& other) override;
+};
+
 class Function : public Stmt, public Declaration
 {
     public:
