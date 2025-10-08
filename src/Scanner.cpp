@@ -43,13 +43,13 @@ std::vector<Token> Scanner::scanTokens()
         {
             scanToken();
         }
-        catch(ScanError& error)
+        catch (ScanError& error)
         {
             error.show();
         }
 	}
 
-	tokens.push_back(Token(eof, "", Object(NULL), line, column, fileName));
+	tokens.push_back(Token(eof, "", Object(nullptr), line, column, fileName));
 	return tokens;
 }
 
