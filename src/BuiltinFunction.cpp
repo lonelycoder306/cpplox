@@ -67,13 +67,21 @@ Object BuiltinFunction::b_number(Call* expr, Object object)
     if (type(object) != STR)
         throw RuntimeError(callee, "Invalid input to number().");
     std::string text = std::any_cast<std::string>(object.value);
-    for (char c : text)
+    double value;
+    try
     {
-        if (!isdigit(c) && (c != '.') && (c != '+') && (c != '-'))
-            throw RuntimeError(callee, "Invalid input to number().");
+        value = std::stod(text);
+    }
+    catch (std::invalid_argument& e)
+    {
+        throw RuntimeError(callee, "Invalid input to number().");
+    }
+    catch (std::out_of_range& e)
+    {
+        throw RuntimeError(callee, "Numeric value is too large.");
     }
     
-    return Object(std::stod(text));
+    return Object(value);
 }
 
 // Only for strings for the time being.
