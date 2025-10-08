@@ -7,10 +7,13 @@
 #include "../include/Stmt.h"
 #include "../include/Token.h"
 #include "../include/TokenType.h"
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
+
+namespace fs = std::filesystem;
 
 #define VAR_DEC true
 #define FIX_DEC false
@@ -126,8 +129,9 @@ Stmt* Parser::fetchStatement()
 
     if (mode == "Lib")
     {
-        name = "Libraries\\" + name + ".lox";
-        std::ifstream libIn(name);
+        fs::path libPath = "Libraries";
+        libPath /= name + ".lox";
+        std::ifstream libIn(libPath.string());
         if (libIn.fail())
             throw ParseError(nameToken, "No such library file.");
         std::string libFile((std::istreambuf_iterator<char>(libIn)), 
