@@ -1,5 +1,5 @@
 *.ps1
-*.o
-*.exe
+build/
 extras/
 *.json
+*.lox
