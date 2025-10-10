@@ -434,7 +434,7 @@ Expr* Parser::ternary()
 
     while (match(Q_MARK))
     {
-        Expr* left = equality();
+        Expr* left = expression();
         consume(COLON, "Expect colon separator between ternary operator branches.");
         Expr* right = ternary();
         expr = new Ternary(expr, left, right);
