@@ -42,7 +42,7 @@ class Interpreter : public Visitor
         Environment globals;
         Environment builtins;
 
-        Interpreter() = default;
+        Interpreter();
         void interpret(vpS);
         void execute(Stmt*);
         Object evaluate(Expr* expr);
