@@ -15,6 +15,7 @@ class LoxClass final : public LoxCallable, public ClassInstance
         LoxClass* superclass;
         std::map<std::string, LoxFunction> methods;
 
+        LoxClass() = default;
         LoxClass(std::string name, LoxClass* metaclass,
                 LoxClass* superclass, std::map<std::string, LoxFunction> methods);
         bool hasMethod(std::string name);

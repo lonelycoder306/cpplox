@@ -7,6 +7,7 @@
 class ClassInstance
 {
 	public:
+		ClassInstance() = default;
 		ClassInstance(Object klassObj);
 		Object get(Token name);
 		void set(Token name, Object value);

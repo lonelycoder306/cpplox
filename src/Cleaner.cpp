@@ -186,6 +186,14 @@ void Cleaner::visitLambdaExpr(Lambda* &expr)
     expr = nullptr;
 }
 
+void Cleaner::visitListExpr(List* &expr)
+{
+    for (Expr* element : expr->elements)
+        clean(element);
+    delete expr;
+    expr = nullptr;
+}
+
 void Cleaner::visitLiteralExpr(Literal* &expr)
 {
     delete expr;

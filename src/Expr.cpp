@@ -190,6 +190,37 @@ bool Lambda::operator==(Expr& other)
             (this->body == check->body));
 }
 
+List::List(vpE elements)
+{
+    this->elements = elements;
+}
+
+Object List::accept(Visitor& visitor)
+{
+    return visitor.visitListExpr(this);
+}
+
+void List::remove(Cleaner& cleaner, Expr* &expr)
+{
+    cleaner.visitListExpr(reinterpret_cast<List *&>(expr));
+}
+
+bool List::operator==(Expr& other)
+{
+    auto check = dynamic_cast<List *>(&other);
+    if (!check) return false;
+    if (this->elements.size() != check->elements.size())
+        return false;
+        
+    for (int i = 0; i < (int) this->elements.size(); i++)
+    {
+        if (this->elements[i] != check->elements[i])
+            return false;
+    }
+
+    return true;
+}
+
 // Literal.
 Literal::Literal(Object value)
 {
@@ -273,7 +304,6 @@ Super::Super(Token keyword, Token method)
     this->keyword = keyword;
     this->method = method;
 }
-
 
 Object Super::accept(Visitor& visitor)
 {

@@ -73,6 +73,7 @@ class Interpreter : public Visitor
         Object visitGetExpr(Get* expr) override;
         Object visitGroupingExpr(Grouping* expr) override;
         Object visitLambdaExpr(Lambda* expr) override;
+        Object visitListExpr(List* expr) override;
         Object visitLiteralExpr(Literal* expr) override;
         Object visitLogicalExpr(Logical* expr) override;
         Object visitSetExpr(Set* expr) override;
@@ -98,7 +99,7 @@ class Interpreter : public Visitor
         bool isTruthy(Object object);
         bool isEqual(Object a, Object b);
         Object plus(Binary* expr, Object left, Object right);
-        Object callFunc(Object callee, std::vector<Object> arguments, Call* expr);
-        Object callNative(Object callee, std::vector<Object> arguments, Call* expr);
-        Object callClass(Object callee, std::vector<Object> arguments, Call* expr);
+
+        template<typename Func>
+        Object call(Object callee, std::vector<Object> arguments, Call* expr);
 };

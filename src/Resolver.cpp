@@ -289,6 +289,13 @@ Object Resolver::visitLambdaExpr(Lambda* expr)
     return Object(nullptr);
 }
 
+Object Resolver::visitListExpr(List* expr)
+{
+    for (Expr* element : expr->elements)
+        resolve(element);
+    return Object(nullptr);
+}
+
 Object Resolver::visitLiteralExpr(Literal* expr)
 {
     (void) expr;

@@ -40,6 +40,8 @@ std::string Object::printType()
         return "<class>";
     if (type(*this) == LOX_INST)
         return "<class instance>";
+    if (type(*this) == LIST)
+        return "<list>";
     if (type(*this) == TIME)
         return "<time>";
     if (type(*this) == NONE)

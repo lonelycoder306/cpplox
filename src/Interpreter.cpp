@@ -4,6 +4,7 @@
 #include "../include/ClassInstance.h"
 #include "../include/Error.h"
 #include "../include/Expr.h"
+#include "../include/ListObject.h"
 #include "../include/Lox.h"
 #include "../include/LoxCallable.h"
 #include "../include/LoxClass.h"
@@ -14,12 +15,14 @@
 #include "../include/Overloads.h"
 #include "../include/Stmt.h"
 #include "../include/Types.h"
+#include <algorithm>
 #include <any>
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 #include <typeinfo>
+#include <type_traits>
 #include <vector>
 
 #define double(obj) std::any_cast<double>(obj.value)
@@ -30,6 +33,8 @@
 #define class(obj) std::any_cast<LoxClass>(obj.value)
 #define instance(obj) std::any_cast<LoxInstance *>(obj.value)
 #define classinst(obj) std::any_cast<LoxClass *>(obj.value)
+#define list(obj) std::any_cast<ListObject>(obj.value)
+#define listfunc(obj) std::any_cast<ListFunction>(obj.value)
 #define time(obj) std::any_cast<time_t>(obj.value)
 
 #define VAR_DEC true
@@ -191,7 +196,7 @@ void Interpreter::visitClassStmt(Class* stmt)
 
 void Interpreter::visitExpressionStmt(Expression* stmt)
 {
-    if (dynamic_cast<Call*>(stmt->expression))
+    if (dynamic_cast<Call *>(stmt->expression))
     {
         Object value = evaluate(stmt->expression);
         if (type(value) != NONE)
@@ -199,7 +204,7 @@ void Interpreter::visitExpressionStmt(Expression* stmt)
     }
     else if (!(dynamic_cast<Assign *>(stmt->expression)) &&
         !(dynamic_cast<Set *>(stmt->expression)))
-        visitPrintStmt(new Print(stmt->expression));
+            visitPrintStmt(new Print(stmt->expression));
     else
         evaluate(stmt->expression);
 }
@@ -371,38 +376,25 @@ Object Interpreter::visitBinaryExpr(Binary* expr)
     }
 }
 
-Object Interpreter::callFunc(Object callee, std::vector<Object> arguments, Call* expr)
+template<typename Func>
+Object Interpreter::call(Object callee, std::vector<Object> arguments, Call* expr)
 {
-    LoxFunction function = func(callee);
+    Func function;
+    if constexpr (std::is_same_v<Func, LoxFunction>)
+        function = func(callee);
+    else if constexpr (std::is_same_v<Func, BuiltinFunction>)
+        function = native(callee);
+    else if constexpr (std::is_same_v<Func, LoxClass>)
+        function = class(callee);
+    else if constexpr (std::is_same_v<Func, ListFunction>)
+        function = listfunc(callee);
+
     if ((int) arguments.size() != function.arity())
         throw RuntimeError(expr->paren, "Expected " +
             std::to_string(function.arity()) + " arguments but got " +
             std::to_string(arguments.size()) + ".");
 
     return function.call(*this, expr, arguments);
-}
-
-Object Interpreter::callNative(Object callee, std::vector<Object> arguments, Call* expr)
-{
-    BuiltinFunction function = native(callee);
-    if ((int) arguments.size() != function.arity())
-        throw RuntimeError(expr->paren, "Expected " +
-            std::to_string(function.arity()) + " arguments but got " +
-            std::to_string(arguments.size()) + ".");
-    
-    return function.call(*this, expr, arguments);
-}
-
-Object Interpreter::callClass(Object callee, std::vector<Object> arguments, Call* expr)
-{
-    LoxClass klass = class(callee);
-    //type function = std::any_cast<type>(callee);
-    if ((int) arguments.size() != klass.arity())
-        throw RuntimeError(expr->paren, "Expected " +
-            std::to_string(klass.arity()) + " arguments but got " +
-            std::to_string(arguments.size()) + ".");
-
-    return klass.call(*this, expr, arguments);
 }
 
 Object Interpreter::visitCallExpr(Call* expr)
@@ -413,21 +405,19 @@ Object Interpreter::visitCallExpr(Call* expr)
     for (Expr* argument: expr->arguments)
         arguments.push_back(evaluate(argument));
 
-    // Change to match any child-class of LoxCallable.
-    if (!(type(callee) == LOX_FUNC) &&
-        !(type(callee) == LOX_CLASS) &&
-        !(type(callee) == LOX_NATIVE))
+    std::vector<Type> validTypes = { LOX_FUNC, LOX_CLASS, LOX_NATIVE, LIST_FUNC };
+    if (std::find(validTypes.begin(), validTypes.end(), type(callee)) 
+            == validTypes.end())
         throw RuntimeError(expr->paren, "Can only call functions and classes.");
 
-    //#define type LoxCallable<LoxFunction>
-
-    // LoxFunction instead of LoxCallable (temporarily).
     if (type(callee) == LOX_FUNC)
-        return callFunc(callee, arguments, expr);
+        return call<LoxFunction>(callee, arguments, expr);
     if (type(callee) == LOX_CLASS)
-        return callClass(callee, arguments, expr);
+        return call<LoxClass>(callee, arguments, expr);
     if (type(callee) == LOX_NATIVE)
-        return callNative(callee, arguments, expr);
+        return call<BuiltinFunction>(callee, arguments, expr);
+    if (type(callee) == LIST_FUNC)
+        return call<ListFunction>(callee, arguments, expr);
     return Object(nullptr); // Unreachable.
 }
 
@@ -454,6 +444,8 @@ Object Interpreter::visitGetExpr(Get* expr)
     }
     if (type(object) == LOX_CLASS)
         return class(object).get(expr->name);
+    if (type(object) == LIST)
+        return list(object).get(expr->name);
 
     throw RuntimeError(expr->name, "Only instances have properties.");
 }
@@ -467,6 +459,14 @@ Object Interpreter::visitLambdaExpr(Lambda* expr)
 {
     Function lambdaDeclaration(Token(), &(expr->params), expr->body);
     return Object(LoxFunction(lambdaDeclaration, environment, false));
+}
+
+Object Interpreter::visitListExpr(List* expr)
+{
+    ListObject list;
+    for (Expr* element : expr->elements)
+        list.array.push_back(evaluate(element));
+    return Object(list);
 }
 
 Object Interpreter::visitLiteralExpr(Literal* expr)
@@ -625,6 +625,7 @@ std::string Interpreter::stringify(Object object)
     if (type(object) == LOX_FUNC) return func(object).toString();
     if (type(object) == LOX_CLASS) return class(object).toString();
     if (type(object) == LOX_INST) return instance(object)->toString();
+    if (type(object) == LIST) return list(object).toString(); 
     if (type(object) == TIME) return std::to_string(time(object));
 
     return ""; // Random return value.

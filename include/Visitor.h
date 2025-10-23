@@ -25,6 +25,7 @@ class Visitor
         virtual Object visitGetExpr(Get* expr) = 0;
         virtual Object visitGroupingExpr(Grouping* expr) = 0;
         virtual Object visitLambdaExpr(Lambda* expr) = 0;
+        virtual Object visitListExpr(List* expr) = 0;
         virtual Object visitLiteralExpr(Literal* expr) = 0;
         virtual Object visitLogicalExpr(Logical* expr) = 0;
         virtual Object visitSetExpr(Set* expr) = 0;

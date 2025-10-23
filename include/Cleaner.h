@@ -29,6 +29,7 @@ class Cleaner
         void visitGetExpr(Get* &expr);
         void visitGroupingExpr(Grouping* &expr);
         void visitLambdaExpr(Lambda* &expr);
+        void visitListExpr(List* &expr);
         void visitLiteralExpr(Literal* &expr);
         void visitLogicalExpr(Logical* &expr);
         void visitSetExpr(Set* &expr);

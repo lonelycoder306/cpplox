@@ -567,6 +567,23 @@ Expr* Parser::call()
     return expr;
 }
 
+Expr* Parser::list()
+{
+    vpE elements;
+    
+    if (!check(RIGHT_BRACKET))
+    {
+        elements.push_back(lambda());
+
+        while (match(COMMA))
+            elements.push_back(lambda());
+    }
+    
+    consume(RIGHT_BRACKET, "Expect ']' to close list.");
+    
+    return new List(elements);
+}
+
 Expr* Parser::primary()
 {
     if (match(FALSE)) return new Literal(Object(false));
@@ -588,6 +605,9 @@ Expr* Parser::primary()
 
     if (match(IDENTIFIER))
         return new Variable(previous());
+    
+    if (match(LEFT_BRACKET))
+        return list();
 
     if (match(LEFT_PAREN))
     {

@@ -51,6 +51,7 @@ class Parser
         Expr* exponent();
         Expr* finishCall(Expr* callee);
         Expr* call();
+        Expr* list();
         Expr* primary();
 
         // Helper methods.

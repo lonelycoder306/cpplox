@@ -3,6 +3,7 @@
 #include "../include/Error.h"
 #include "../include/Expr.h"
 #include "../include/Interpreter.h"
+#include "../include/ListObject.h"
 #include "../include/Object.h"
 #include "../include/Token.h"
 #include "../include/Types.h"
@@ -93,11 +94,18 @@ Object BuiltinFunction::b_length(Call* expr, Object object)
         callee = check->name;
     // Check for access expression.
 
-    if (type(object) != STR)
-        throw RuntimeError(callee, "Invalid input to length().");
-    std::string text = std::any_cast<std::string>(object.value);
-    
-    return Object((double) text.size());
+    if (type(object) == STR)
+    {
+        std::string text = std::any_cast<std::string>(object.value);
+        return Object((double) text.size());
+    }
+    if (type(object) == LIST)
+    {
+        std::vector<Object> array = std::any_cast<ListObject>(object.value).array;
+        return Object((double) array.size());
+    }
+
+    throw RuntimeError(callee, "Invalid input to length().");
 }
 
 int BuiltinFunction::arity()

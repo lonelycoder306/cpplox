@@ -13,6 +13,8 @@ enum Type {
     LOX_CLASS,
     LOX_INST,
     CLASS_INST,
+    LIST,
+	LIST_FUNC,
     TIME,
 	NONE,
 	INVALID

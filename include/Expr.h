@@ -100,6 +100,17 @@ class Lambda : public Expr
         bool operator==(Expr& other) override;
 };
 
+class List : public Expr
+{
+    public:
+        vpE elements;
+
+        List(vpE elements);
+        Object accept(Visitor& visitor) override;
+        void remove(Cleaner& cleaner, Expr* &expr) override;
+        bool operator==(Expr& other) override;
+};
+
 class Literal : public Expr
 {
     public:

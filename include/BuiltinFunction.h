@@ -13,6 +13,7 @@ class Interpreter;
 class BuiltinFunction final : public LoxCallable
 {
     public:
+        BuiltinFunction() = default;
         BuiltinFunction(std::string mode);
         Object call(Interpreter interpreter, Expr* expr, std::vector<Object> arguments) override;
         int arity() override;

@@ -61,6 +61,7 @@ class Resolver : public Visitor
         Object visitGetExpr(Get* expr) override;
         Object visitGroupingExpr(Grouping* expr) override;
         Object visitLambdaExpr(Lambda* expr) override;
+        Object visitListExpr(List* expr) override;
         Object visitLiteralExpr(Literal* expr) override;
         Object visitLogicalExpr(Logical* expr) override;
         Object visitSetExpr(Set* expr) override;

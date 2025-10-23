@@ -1,6 +1,7 @@
 #include "../include/Types.h"
 #include "../include/BuiltinFunction.h"
 #include "../include/ClassInstance.h"
+#include "../include/ListObject.h"
 #include "../include/LoxClass.h"
 #include "../include/LoxFunction.h"
 #include "../include/LoxInstance.h"
@@ -27,6 +28,10 @@ Type type(std::any value)
         return LOX_INST;
     if (value.type() == typeid(ClassInstance *))
         return CLASS_INST;
+    if (value.type() == typeid(ListObject))
+        return LIST;
+    if (value.type() == typeid(ListFunction))
+        return LIST_FUNC;
     if (value.type() == typeid(time_t))
         return TIME;
     if (value.type() == typeid(std::vector<int>))

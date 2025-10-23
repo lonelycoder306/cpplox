@@ -27,7 +27,7 @@ enum TokenType {
     // Added for ternary operator.
     Q_MARK, COLON,
 
-    FIX, MOD, POWER, GET
+    FIX, MOD, POWER, GET, LEFT_BRACKET, RIGHT_BRACKET
 };
 
 static std::string types[] = {
@@ -48,5 +48,7 @@ static std::string types[] = {
 
     "BREAK", "CONTINUE",
 
-    "Q_MARK", "COLON", "FIX", "MOD", "POWER", "GET"
+    "Q_MARK", "COLON", "FIX", "MOD", "POWER", "GET",
+
+    "LEFT_BRACKET", "RIGHT_BRACKET"
 };
